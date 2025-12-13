@@ -1,0 +1,42 @@
+@model IEnumerable<Coursify.Models.Course>
+@{
+    ViewData["Title"] = "My Courses";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">My Courses</h2>
+        <p class="text-muted mb-0">Manage and edit your courses.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateCourse">Create new</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You haven't created any courses yet.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var course in Model)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title">@course.Title</h5>
+                        <p class="text-muted small">@course.Language • @course.Level</p>
+                        <p class="text-truncate">@course.Description</p>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">$@course.Price</span>
+                        <div class="btn-group">
+                            <a class="btn btn-outline-secondary btn-sm" asp-action="EditCourse" asp-route-id="@course.Id">Edit</a>
+                            <a class="btn btn-outline-primary btn-sm" asp-action="CourseStudents" asp-route-courseId="@course.Id">Students</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+

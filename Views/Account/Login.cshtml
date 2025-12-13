@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Login";
+    var error = ViewBag.Error as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4">
+                <h2 class="mb-3 text-center">Welcome back</h2>
+                <p class="text-muted text-center mb-4">Log in to continue learning.</p>
+
+                @if (!string.IsNullOrWhiteSpace(error))
+                {
+                    <div class="alert alert-danger">@error</div>
+                }
+
+                <form asp-action="Login" method="post">
+                    <div class="mb-3">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <span class="text-muted">New here?</span>
+                    <a asp-action="Register" class="ms-1">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,47 @@
+@model IEnumerable<Coursify.Models.Enrollment>
+@{
+    ViewData["Title"] = "Course Students";
+    var course = ViewBag.Course as Coursify.Models.Course;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Students</h2>
+        <p class="text-muted mb-0">@course?.Title</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="MyCourses">Back</a>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No students enrolled yet.</div>
+}
+else
+{
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Progress</th>
+                        <th>Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.Student.Name</td>
+                        <td>@e.Student.Email</td>
+                        <td>@Math.Round(e.ProgressPercentage, 1)%</td>
+                        <td>@(e.CompletedDate.HasValue ? "Yes" : "No")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+

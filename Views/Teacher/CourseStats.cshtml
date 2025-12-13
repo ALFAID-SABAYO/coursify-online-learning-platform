@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Course Stats";
+    var course = ViewBag.Course as Coursify.Models.Course;
+    var totalStudents = ViewBag.TotalStudents as int? ?? 0;
+    var completedStudents = ViewBag.CompletedStudents as int? ?? 0;
+    var totalIncome = ViewBag.TotalIncome as decimal? ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Course Statistics</h2>
+        <p class="text-muted mb-0">@course?.Title</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="MyCourses">Back</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Students</p>
+                <h3 class="mb-0">@totalStudents</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Completed</p>
+                <h3 class="mb-0">@completedStudents</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Income</p>
+                <h3 class="mb-0">$@totalIncome</h3>
+            </div>
+        </div>
+    </div>
+</div>
+

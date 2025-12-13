@@ -1,0 +1,96 @@
+@using Coursify.Models
+@{
+    ViewData["Title"] = "Student Dashboard";
+    var enrollments = ViewBag.Enrollments as List<Enrollment> ?? new List<Enrollment>();
+    var certificates = ViewBag.Certificates as List<Certificate> ?? new List<Certificate>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Student Dashboard</h2>
+        <p class="text-muted mb-0">Your learning overview</p>
+    </div>
+    <a class="btn btn-primary" asp-action="BrowseCourses">Browse Courses</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Enrolled courses</p>
+                <h3 class="mb-0">@enrollments.Count</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Certificates earned</p>
+                <h3 class="mb-0">@certificates.Count</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">My Courses</h5>
+            <a asp-action="MyCourses" class="btn btn-link">See all</a>
+        </div>
+        @if (enrollments.Count == 0)
+        {
+            <p class="text-muted mb-0">You have not enrolled in any courses yet.</p>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var e in enrollments.Take(4))
+                {
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">@e.Course.Title</h6>
+                                <span class="badge bg-secondary">@e.Course.Level</span>
+                            </div>
+                            <p class="text-muted small mb-2">By @e.Course.Teacher.Name</p>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" style="width: @e.ProgressPercentage%"></div>
+                            </div>
+                            <small class="text-muted">@Math.Round(e.ProgressPercentage, 1)% completed</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Certificates</h5>
+            <a asp-action="MyCourses" class="btn btn-link">Go to courses</a>
+        </div>
+        @if (certificates.Count == 0)
+        {
+            <p class="text-muted mb-0">No certificates yet. Complete a course to earn one.</p>
+        }
+        else
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var c in certificates)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold">@c.Enrollment.Course.Title</div>
+                            <small class="text-muted">Issued @c.IssuedDate.ToShortDateString()</small>
+                        </div>
+                        <a class="btn btn-outline-primary btn-sm" asp-action="ViewCertificate" asp-route-enrollmentId="@c.EnrollmentId">View</a>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
+

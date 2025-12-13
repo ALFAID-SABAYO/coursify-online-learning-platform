@@ -1,0 +1,63 @@
+@model Coursify.Models.User
+@{
+    ViewData["Title"] = "Sign Up";
+    var error = ViewBag.Error as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4">
+                <h2 class="mb-3 text-center">Create your account</h2>
+                <p class="text-muted text-center mb-4">Join as a student or teacher to get started.</p>
+
+                @if (!string.IsNullOrWhiteSpace(error))
+                {
+                    <div class="alert alert-danger">@error</div>
+                }
+
+                <form asp-action="Register" method="post">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Full name" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Create a password" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-block mb-2">Join as</label>
+                        <div class="btn-group w-100" role="group" aria-label="Role selection">
+                            <input type="radio" class="btn-check" name="role" id="role-student" value="Student" checked>
+                            <label class="btn btn-outline-primary" for="role-student">Student</label>
+
+                            <input type="radio" class="btn-check" name="role" id="role-teacher" value="Teacher">
+                            <label class="btn btn-outline-primary" for="role-teacher">Teacher</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Create account</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <span class="text-muted">Already have an account?</span>
+                    <a asp-action="Login" class="ms-1">Log in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

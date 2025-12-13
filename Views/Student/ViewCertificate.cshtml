@@ -1,0 +1,27 @@
+@model Coursify.Models.Certificate
+@{
+    ViewData["Title"] = "Certificate";
+}
+
+<div class="mb-4">
+    <a class="btn btn-link" asp-action="MyCourses">← Back to courses</a>
+    <h2 class="mt-3">Certificate</h2>
+</div>
+
+@if (Model == null)
+{
+    <div class="alert alert-warning">Certificate not found.</div>
+}
+else
+{
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="mb-1">@Model.Enrollment.Course.Title</h4>
+            <p class="text-muted mb-2">Issued on @Model.IssuedDate.ToShortDateString()</p>
+            <p class="mb-3">Certificate Code: <strong>@Model.UniqueCode</strong></p>
+
+            <a class="btn btn-primary" href="@Model.CertificateUrl" target="_blank">View / Download</a>
+        </div>
+    </div>
+}
+

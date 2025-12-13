@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "Teacher Dashboard";
+    var courses = ViewBag.Courses as List<Coursify.Models.Course> ?? new();
+    var totalStudents = ViewBag.TotalStudents as int? ?? 0;
+    var totalIncome = ViewBag.TotalIncome as decimal? ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Teacher Dashboard</h2>
+        <p class="text-muted mb-0">Overview of your courses and earnings</p>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateCourse">Create new course</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Courses</p>
+                <h3 class="mb-0">@courses.Count</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Students</p>
+                <h3 class="mb-0">@totalStudents</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <p class="text-muted mb-1">Total income</p>
+                <h3 class="mb-0">$@totalIncome</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">My Courses</h5>
+            <a asp-action="MyCourses" class="btn btn-link">Manage</a>
+        </div>
+        @if (!courses.Any())
+        {
+            <p class="text-muted mb-0">No courses yet. Create your first course.</p>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var course in courses.Take(4))
+                {
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">@course.Title</h6>
+                                <span class="badge bg-secondary">@course.Level</span>
+                            </div>
+                            <p class="text-muted small mb-2">@course.Language</p>
+                            <p class="text-muted small mb-0">Price: $@course.Price</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+

@@ -1,0 +1,51 @@
+@model IEnumerable<Coursify.Models.Enrollment>
+@{
+    ViewData["Title"] = "My Courses";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">My Courses</h2>
+        <p class="text-muted mb-0">Track your progress and continue learning.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="BrowseCourses">Browse more</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You have not enrolled in any courses yet.</div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">@e.Course.Title</h5>
+                            <span class="badge bg-secondary">@e.Course.Level</span>
+                        </div>
+                        <p class="text-muted mb-1">By @e.Course.Teacher.Name</p>
+                        <p class="mb-3 text-truncate">@e.Course.Description</p>
+
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: @e.ProgressPercentage%"></div>
+                        </div>
+                        <small class="text-muted d-block mb-3">@Math.Round(e.ProgressPercentage, 1)% completed</small>
+
+                        <div class="d-flex justify-content-between">
+                            <a class="btn btn-outline-primary btn-sm" asp-action="CourseDetails" asp-route-id="@e.CourseId">Continue</a>
+                            @if (e.HasCertificate)
+                            {
+                                <a class="btn btn-success btn-sm" asp-action="ViewCertificate" asp-route-enrollmentId="@e.Id">Certificate</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+

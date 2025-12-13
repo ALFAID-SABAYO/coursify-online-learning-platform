@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var totalUsers = ViewBag.TotalUsers as int? ?? 0;
+    var totalStudents = ViewBag.TotalStudents as int? ?? 0;
+    var totalTeachers = ViewBag.TotalTeachers as int? ?? 0;
+    var totalCourses = ViewBag.TotalCourses as int? ?? 0;
+    var totalEnrollments = ViewBag.TotalEnrollments as int? ?? 0;
+}
+
+<h2 class="mb-4">Admin Dashboard</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><p class="text-muted mb-1">Users</p><h3 class="mb-0">@totalUsers</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><p class="text-muted mb-1">Students</p><h3 class="mb-0">@totalStudents</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><p class="text-muted mb-1">Teachers</p><h3 class="mb-0">@totalTeachers</h3></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm border-0"><div class="card-body"><p class="text-muted mb-1">Courses</p><h3 class="mb-0">@totalCourses</h3></div></div></div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <p class="text-muted mb-1">Total Enrollments</p>
+            <h4 class="mb-0">@totalEnrollments</h4>
+        </div>
+        <div class="btn-group">
+            <a class="btn btn-primary" asp-action="ManageUsers">Manage Users</a>
+            <a class="btn btn-outline-primary" asp-action="ManageCourses">Manage Courses</a>
+        </div>
+    </div>
+</div>
+
