@@ -246,6 +246,42 @@ namespace coursify.Migrations
                     b.ToTable("Progresses");
                 });
 
+            modelBuilder.Entity("Coursify.Models.Transaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EnrollmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Percentage")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("RecipientId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RecipientRole")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("RecipientId");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("Coursify.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -370,6 +406,25 @@ namespace coursify.Migrations
                     b.Navigation("Enrollment");
 
                     b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("Coursify.Models.Transaction", b =>
+                {
+                    b.HasOne("Coursify.Models.Enrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Coursify.Models.User", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("Recipient");
                 });
 
             modelBuilder.Entity("Coursify.Models.Course", b =>

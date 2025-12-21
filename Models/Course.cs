@@ -20,6 +20,9 @@ namespace Coursify.Models
         public int TeacherId { get; set; }
 
         public string? ThumbnailUrl { get; set; }
+        
+        // Main course video URL (YouTube link or direct video URL)
+        // Students will watch this video after purchasing the course
         public string? PreviewVideoUrl { get; set; }
         public bool IsPublished { get; set; } = false;
         public string Level { get; set; } = "Beginner";

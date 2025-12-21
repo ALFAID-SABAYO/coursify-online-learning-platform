@@ -6,52 +6,100 @@
     <title>@ViewData["Title"] - coursify</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/coursify.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body data-theme="light">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">coursify</a>
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-graduation-cap me-2"></i>Coursify
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @{
+                            var userId = Context.Session.GetInt32("UserId");
+                            var userRole = Context.Session.GetString("UserRole");
+                            var userName = Context.Session.GetString("UserName");
+                        }
+                        @if (userId != null)
+                        {
+                            @if (userRole == "Student")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Student" asp-action="BrowseCourses">
+                                        <i class="fas fa-book me-1"></i>Browse Courses
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Student" asp-action="MyCourses">
+                                        <i class="fas fa-list me-1"></i>My Courses
+                                    </a>
+                                </li>
+                            }
+                            @if (userRole == "Teacher")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Teacher" asp-action="MyCourses">
+                                        <i class="fas fa-chalkboard-teacher me-1"></i>My Courses
+                                    </a>
+                                </li>
+                            }
+                            @if (userRole == "Admin")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="ManageCourses">
+                                        <i class="fas fa-cog me-1"></i>Manage Courses
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="ManageUsers">
+                                        <i class="fas fa-users me-1"></i>Manage Users
+                                    </a>
+                                </li>
+                            }
+                        }
                     </ul>
-                    @{
-                        var userId = Context.Session.GetInt32("UserId");
-                        var userRole = Context.Session.GetString("UserRole");
-                        var userName = Context.Session.GetString("UserName");
-                    }
                     <ul class="navbar-nav">
                         @if (userId == null)
                         {
                             <li class="nav-item">
-                                <a class="btn btn-outline-primary me-2" asp-controller="Account" asp-action="Login">Login</a>
+                                <a class="btn btn-outline-light me-2" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Sign Up</a>
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus me-1"></i>Sign Up
+                                </a>
                             </li>
                         }
                         else
                         {
-                            <li class="nav-item d-flex align-items-center me-3 text-muted">
-                                <span class="me-2">Hi, @userName</span>
-                                <span class="badge bg-secondary text-uppercase">@userRole</span>
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <span class="text-light me-2">Hi, @userName</span>
+                                <span class="badge bg-primary text-uppercase">@userRole</span>
+                            </li>
+                            <li class="nav-item me-2">
+                                <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">
+                                    <i class="fas fa-moon" id="themeIcon"></i>
+                                </button>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-outline-secondary me-2" asp-controller="@userRole" asp-action="Dashboard">Dashboard</a>
+                                <a class="btn btn-outline-light me-2" asp-controller="@userRole" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                                <a class="btn btn-danger" asp-controller="Account" asp-action="Logout">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                </a>
                             </li>
                         }
                     </ul>
@@ -73,6 +121,33 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Theme Toggle Functionality
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const body = document.body;
+            
+            // Get saved theme or default to light
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            body.setAttribute('data-theme', currentTheme);
+            updateIcon(currentTheme);
+            
+            themeToggle?.addEventListener('click', function() {
+                const currentTheme = body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateIcon(newTheme);
+            });
+            
+            function updateIcon(theme) {
+                if (themeIcon) {
+                    themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+                }
+            }
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

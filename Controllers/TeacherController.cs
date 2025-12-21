@@ -80,9 +80,16 @@ namespace Coursify.Controllers
         public async Task<IActionResult> MyCourses()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
+            // Use AsNoTracking for read-only operation
             var courses = await _context.Courses
+                .AsNoTracking()
                 .Where(c => c.TeacherId == userId)
+                .OrderByDescending(c => c.CreatedDate)
                 .ToListAsync();
 
             return View(courses);
@@ -91,32 +98,107 @@ namespace Coursify.Controllers
         // Edit Course
         public async Task<IActionResult> EditCourse(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Use AsNoTracking for read-only operation to avoid timeout
+            var course = await _context.Courses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id && c.TeacherId == userId);
+
+            if (course == null)
+            {
+                return NotFound();
+            }
+
             return View(course);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditCourse(Course course, IFormFile thumbnail)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCourse(int id, Course course, IFormFile thumbnail, CancellationToken cancellationToken = default)
         {
-            if (thumbnail != null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
             {
-                var uploadsPath = Path.Combine("wwwroot", "uploads");
-                Directory.CreateDirectory(uploadsPath);
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(thumbnail.FileName);
-                var filePath = Path.Combine(uploadsPath, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await thumbnail.CopyToAsync(stream);
-                }
-
-                course.ThumbnailUrl = $"/uploads/{fileName}";
+                return RedirectToAction("Login", "Account");
             }
 
-            _context.Courses.Update(course);
-            await _context.SaveChangesAsync();
+            // Fetch existing course with minimal data
+            var existingCourse = await _context.Courses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id && c.TeacherId == userId, cancellationToken);
 
-            return RedirectToAction("MyCourses");
+            if (existingCourse == null)
+            {
+                return NotFound();
+            }
+
+            // Validate model
+            if (!ModelState.IsValid)
+            {
+                return View(existingCourse);
+            }
+
+            // Attach and update - only fetch what we need
+            var courseToUpdate = new Course { Id = id, TeacherId = userId.Value };
+            _context.Courses.Attach(courseToUpdate);
+
+            // Update only changed properties
+            courseToUpdate.Title = course.Title;
+            courseToUpdate.Description = course.Description;
+            courseToUpdate.Price = course.Price;
+            courseToUpdate.Level = course.Level;
+            courseToUpdate.Language = course.Language;
+            courseToUpdate.PreviewVideoUrl = course.PreviewVideoUrl;
+            courseToUpdate.IsPublished = course.IsPublished;
+
+            // Handle thumbnail upload asynchronously with proper cancellation
+            if (thumbnail != null && thumbnail.Length > 0)
+            {
+                try
+                {
+                    var uploadsPath = Path.Combine("wwwroot", "uploads");
+                    Directory.CreateDirectory(uploadsPath);
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(thumbnail.FileName);
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    // Use async file operations with cancellation token
+                    using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                    {
+                        await thumbnail.CopyToAsync(stream, cancellationToken);
+                    }
+
+                    courseToUpdate.ThumbnailUrl = $"/uploads/{fileName}";
+                }
+                catch (OperationCanceledException)
+                {
+                    ModelState.AddModelError("", "Upload was cancelled.");
+                    return View(existingCourse);
+                }
+            }
+
+            try
+            {
+                // Set command timeout to prevent timeout errors
+                _context.Database.SetCommandTimeout(120); // 2 minutes
+                await _context.SaveChangesAsync(cancellationToken);
+                TempData["Success"] = "Course updated successfully!";
+                return RedirectToAction("MyCourses");
+            }
+            catch (OperationCanceledException)
+            {
+                ModelState.AddModelError("", "Operation was cancelled due to timeout.");
+                return View(existingCourse);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error saving course: {ex.Message}");
+                return View(existingCourse);
+            }
         }
 
         // Add Module
@@ -144,9 +226,51 @@ namespace Coursify.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddLesson(Lesson lesson)
+        public async Task<IActionResult> AddLesson(Lesson lesson, IFormFile videoFile)
         {
+            if (videoFile == null || videoFile.Length == 0)
+            {
+                ModelState.AddModelError("videoFile", "Video file is required.");
+                ViewBag.ModuleId = lesson.ModuleId;
+                return View(lesson);
+            }
+
+            // Validate file size (500MB max)
+            if (videoFile.Length > 500 * 1024 * 1024)
+            {
+                ModelState.AddModelError("videoFile", "Video file size must be less than 500MB.");
+                ViewBag.ModuleId = lesson.ModuleId;
+                return View(lesson);
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov", ".avi" };
+            var fileExtension = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                ModelState.AddModelError("videoFile", "Invalid video format. Allowed: MP4, WebM, OGG, MOV, AVI");
+                ViewBag.ModuleId = lesson.ModuleId;
+                return View(lesson);
+            }
+
+            // Create videos directory if it doesn't exist
+            var videosPath = Path.Combine("wwwroot", "videos");
+            Directory.CreateDirectory(videosPath);
+
+            // Generate unique filename
+            var fileName = Guid.NewGuid().ToString() + fileExtension;
+            var filePath = Path.Combine(videosPath, fileName);
+
+            // Save video file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await videoFile.CopyToAsync(stream);
+            }
+
+            // Set video URL
+            lesson.VideoUrl = $"/videos/{fileName}";
             lesson.CreatedDate = DateTime.UtcNow;
+            
             _context.Lessons.Add(lesson);
             await _context.SaveChangesAsync();
 

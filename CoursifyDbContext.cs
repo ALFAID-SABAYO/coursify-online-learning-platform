@@ -17,6 +17,7 @@ namespace coursify
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<Module> Modules { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +53,46 @@ namespace coursify
                 .HasOne(e => e.Certificate)
                 .WithOne(c => c.Enrollment)
                 .HasForeignKey<Certificate>(c => c.EnrollmentId);
+
+            // Transaction relations
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Enrollment)
+                .WithMany()
+                .HasForeignKey(t => t.EnrollmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Recipient)
+                .WithMany()
+                .HasForeignKey(t => t.RecipientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cascading deletes for Course
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.Enrollments)
+                .WithOne(e => e.Course)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.Modules)
+                .WithOne(m => m.Course)
+                .HasForeignKey(m => m.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Cascading deletes for Module
+            modelBuilder.Entity<Module>()
+                .HasMany(m => m.Lessons)
+                .WithOne(l => l.Module)
+                .HasForeignKey(l => l.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Cascading deletes for Enrollment
+            modelBuilder.Entity<Enrollment>()
+                .HasMany(e => e.Progresses)
+                .WithOne(p => p.Enrollment)
+                .HasForeignKey(p => p.EnrollmentId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

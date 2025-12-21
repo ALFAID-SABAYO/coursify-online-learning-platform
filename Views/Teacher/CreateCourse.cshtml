@@ -39,12 +39,17 @@
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
         <div class="col-md-6">
-            <label class="form-label">Thumbnail</label>
+            <label class="form-label">Course Thumbnail (Upload from device)</label>
             <input type="file" name="thumbnail" class="form-control" accept="image/*" />
+            <small class="text-muted">Upload an image file from your device</small>
         </div>
         <div class="col-md-6">
-            <label class="form-label">Preview video URL</label>
-            <input asp-for="PreviewVideoUrl" class="form-control" placeholder="https://..." />
+            <label class="form-label">Course Video URL <span class="text-danger">*</span></label>
+            <input asp-for="PreviewVideoUrl" class="form-control" placeholder="YouTube link or direct video URL" required />
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>Enter YouTube link (e.g., https://youtube.com/watch?v=...) or direct video URL. This will be the main course video.
+            </small>
+            <span asp-validation-for="PreviewVideoUrl" class="text-danger"></span>
         </div>
         <div class="col-12">
             <div class="form-check">
@@ -61,4 +66,7 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+
+
 

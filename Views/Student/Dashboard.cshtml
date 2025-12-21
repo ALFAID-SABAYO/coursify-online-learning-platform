@@ -1,3 +1,4 @@
+@model IEnumerable<Coursify.Models.Course>
 @using Coursify.Models
 @{
     ViewData["Title"] = "Student Dashboard";
@@ -8,25 +9,51 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="mb-0">Student Dashboard</h2>
-        <p class="text-muted mb-0">Your learning overview</p>
+        <p class="text-muted mb-0">Browse and enroll in courses</p>
     </div>
-    <a class="btn btn-primary" asp-action="BrowseCourses">Browse Courses</a>
+    <div>
+        <a class="btn btn-outline-secondary me-2" asp-action="MyCourses">My Courses</a>
+        <span class="badge bg-primary">@enrollments.Count Enrolled</span>
+    </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <p class="text-muted mb-1">Enrolled courses</p>
-                <h3 class="mb-0">@enrollments.Count</h3>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-book-reader fa-2x text-primary me-3"></i>
+                    <div>
+                        <p class="text-muted mb-1 small">Enrolled Courses</p>
+                        <h3 class="mb-0">@enrollments.Count</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <p class="text-muted mb-1">Certificates earned</p>
-                <h3 class="mb-0">@certificates.Count</h3>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-certificate fa-2x text-success me-3"></i>
+                    <div>
+                        <p class="text-muted mb-1 small">Certificates Earned</p>
+                        <h3 class="mb-0">@certificates.Count</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-graduation-cap fa-2x text-info me-3"></i>
+                    <div>
+                        <p class="text-muted mb-1 small">Available Courses</p>
+                        <h3 class="mb-0">@Model.Count()</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -35,29 +62,40 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">My Courses</h5>
-            <a asp-action="MyCourses" class="btn btn-link">See all</a>
+            <h5 class="mb-0">All Courses</h5>
         </div>
-        @if (enrollments.Count == 0)
+        @if (!Model.Any())
         {
-            <p class="text-muted mb-0">You have not enrolled in any courses yet.</p>
+            <div class="alert alert-info">No courses available right now.</div>
         }
         else
         {
-            <div class="row g-3">
-                @foreach (var e in enrollments.Take(4))
+            <div class="row g-4">
+                @foreach (var course in Model)
                 {
-                    <div class="col-md-6">
-                        <div class="border rounded p-3 h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">@e.Course.Title</h6>
-                                <span class="badge bg-secondary">@e.Course.Level</span>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-0" style="margin-bottom: 15px;">
+                            @if (!string.IsNullOrEmpty(course.ThumbnailUrl))
+                            {
+                                <img src="@course.ThumbnailUrl" class="card-img-top" alt="@course.Title" style="height: 200px; object-fit: cover; border-radius: 12px 12px 0 0;">
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">@course.Title</h5>
+                                <p class="text-muted small mb-2">
+                                    <i class="fas fa-user-tie me-1"></i>By @course.Teacher.Name
+                                </p>
+                                <p class="card-text text-truncate">@course.Description</p>
+                                <div class="mb-3">
+                                    <span class="badge bg-secondary me-1">@course.Level</span>
+                                    <span class="badge bg-info">@course.Language</span>
+                                </div>
                             </div>
-                            <p class="text-muted small mb-2">By @e.Course.Teacher.Name</p>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar" role="progressbar" style="width: @e.ProgressPercentage%"></div>
+                            <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center pb-3">
+                                <span class="fw-bold fs-5 text-primary">$@course.Price</span>
+                                <a class="btn btn-primary btn-sm" asp-action="CourseDetails" asp-route-id="@course.Id">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
                             </div>
-                            <small class="text-muted">@Math.Round(e.ProgressPercentage, 1)% completed</small>
                         </div>
                     </div>
                 }
@@ -93,4 +131,7 @@
         }
     </div>
 </div>
+
+
+
 

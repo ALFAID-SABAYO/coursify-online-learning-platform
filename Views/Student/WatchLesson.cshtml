@@ -1,0 +1,185 @@
+@model Coursify.Models.Lesson
+@{
+    ViewData["Title"] = Model?.Title ?? "Watch Lesson";
+    var enrollmentId = ViewBag.EnrollmentId as int? ?? 0;
+    var course = ViewBag.Course as Coursify.Models.Course;
+    var isCompleted = ViewBag.IsCompleted as bool? ?? false;
+    var nextLesson = ViewBag.NextLesson as Coursify.Models.Lesson;
+    var prevLesson = ViewBag.PrevLesson as Coursify.Models.Lesson;
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="video-player-container mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">@Model.Title</h4>
+                @if (isCompleted)
+                {
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i>Completed
+                    </span>
+                }
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.VideoUrl))
+            {
+                <div class="video-player-wrapper">
+                    <video id="lessonVideo" controls controlsList="nodownload" preload="metadata" class="w-100" style="background: #000;">
+                        @{
+                            var videoExtension = System.IO.Path.GetExtension(Model.VideoUrl)?.ToLower();
+                            var mimeType = videoExtension switch
+                            {
+                                ".mp4" => "video/mp4",
+                                ".webm" => "video/webm",
+                                ".ogg" => "video/ogg",
+                                ".mov" => "video/quicktime",
+                                ".avi" => "video/x-msvideo",
+                                _ => "video/mp4"
+                            };
+                        }
+                        <source src="@Model.VideoUrl" type="@mimeType">
+                        <source src="@Model.VideoUrl" type="video/mp4">
+                        <p class="text-white p-3">Your browser does not support the video tag. 
+                            <a href="@Model.VideoUrl" class="text-primary" download>Download the video</a> instead.
+                        </p>
+                    </video>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>Having trouble playing? 
+                        <a href="@Model.VideoUrl" target="_blank" class="text-primary">Open video in new tab</a>
+                    </small>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Video not available. The instructor hasn't uploaded the video content yet.
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="mt-3">
+                    <h6>Description</h6>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+            }
+
+            <div class="mt-4">
+                @if (!isCompleted)
+                {
+                    <form asp-action="MarkCompleted" method="post" class="d-inline">
+                        <input type="hidden" name="enrollmentId" value="@enrollmentId" />
+                        <input type="hidden" name="lessonId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Mark as Completed
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button class="btn btn-success btn-lg" disabled>
+                        <i class="fas fa-check-circle me-2"></i>Completed
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="d-flex justify-content-between">
+            @if (prevLesson != null)
+            {
+                <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@prevLesson.Id" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Previous Lesson
+                </a>
+            }
+            else
+            {
+                <span></span>
+            }
+            
+            @if (nextLesson != null)
+            {
+                <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@nextLesson.Id" class="btn btn-primary">
+                    Next Lesson<i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            }
+            else
+            {
+                <a asp-action="MyCourses" class="btn btn-outline-secondary">
+                    <i class="fas fa-list me-2"></i>Back to My Courses
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Course Content
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (course != null && course.Modules != null)
+                {
+                    @foreach (var module in course.Modules.OrderBy(m => m.OrderNo))
+                    {
+                        <div class="mb-3">
+                            <h6 class="fw-bold">@module.Title</h6>
+                            <ul class="list-unstyled ms-3">
+                                @foreach (var lesson in module.Lessons.OrderBy(l => l.OrderNo))
+                                {
+                                    var lessonCompleted = ViewBag.CompletedLessons as HashSet<int> ?? new HashSet<int>();
+                                    var isLessonCompleted = lessonCompleted.Contains(lesson.Id);
+                                    var isCurrentLesson = lesson.Id == Model.Id;
+                                    
+                                    <li class="mb-2">
+                                        @if (isCurrentLesson)
+                                        {
+                                            <span class="fw-bold text-primary">
+                                                <i class="fas fa-play-circle me-1"></i>@lesson.Title
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@lesson.Id" class="text-decoration-none">
+                                                @if (isLessonCompleted)
+                                                {
+                                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-circle me-1"></i>
+                                                }
+                                                @lesson.Title
+                                            </a>
+                                        }
+                                        @if (lesson.Duration.HasValue)
+                                        {
+                                            <small class="text-muted ms-2">@lesson.Duration.Value min</small>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Track video progress (optional - can be enhanced later)
+        const video = document.getElementById('lessonVideo');
+        if (video) {
+            video.addEventListener('play', function() {
+                console.log('Video started playing');
+            });
+        }
+    </script>
+}
+

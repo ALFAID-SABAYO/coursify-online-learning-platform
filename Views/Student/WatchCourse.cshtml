@@ -1,0 +1,160 @@
+@model Coursify.Models.Course
+@{
+    ViewData["Title"] = Model?.Title ?? "Watch Course";
+    var enrollmentId = ViewBag.EnrollmentId as int? ?? 0;
+    var enrollment = ViewBag.Enrollment as Coursify.Models.Enrollment;
+    var videoUrl = Model?.PreviewVideoUrl;
+}
+
+<div class="mb-4">
+    <a class="btn btn-link" asp-action="MyCourses">← Back to My Courses</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="mb-2">@Model.Title</h2>
+                <p class="text-muted mb-3">
+                    <i class="fas fa-user-tie me-1"></i>By @Model.Teacher.Name
+                </p>
+                <p>@Model.Description</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="mb-3">
+                    <i class="fas fa-video me-2"></i>Course Video
+                </h5>
+                
+                @if (!string.IsNullOrEmpty(videoUrl))
+                {
+                    
+                        // Check if it's a YouTube URL
+                        bool isYouTube = videoUrl.Contains("youtube.com") || videoUrl.Contains("youtu.be");
+                        string embedUrl = "";
+                        
+                        if (isYouTube)
+                        {
+                            // Extract video ID from YouTube URL
+                            string videoId = "";
+                            if (videoUrl.Contains("youtube.com/watch?v="))
+                            {
+                                videoId = videoUrl.Split(new[] { "watch?v=" }, StringSplitOptions.None)[1].Split('&')[0];
+                            }
+                            else if (videoUrl.Contains("youtu.be/"))
+                            {
+                                videoId = videoUrl.Split(new[] { "youtu.be/" }, StringSplitOptions.None)[1].Split('?')[0];
+                            }
+                            else if (videoUrl.Contains("youtube.com/embed/"))
+                            {
+                                videoId = videoUrl.Split(new[] { "embed/" }, StringSplitOptions.None)[1].Split('?')[0];
+                            }
+                            
+                            if (!string.IsNullOrEmpty(videoId))
+                            {
+                                embedUrl = $"https://www.youtube.com/embed/{videoId}?rel=0&modestbranding=1";
+                            }
+                        
+                    }
+                    
+                    @if (isYouTube && !string.IsNullOrEmpty(embedUrl))
+                    {
+                        <div class="video-player-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+                            <iframe 
+                                src="@embedUrl" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                            </iframe>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fab fa-youtube me-1 text-danger"></i>Playing from YouTube
+                            </small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="video-player-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000;">
+                            <video id="courseVideo" controls controlsList="nodownload" preload="metadata" class="w-100" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                @{
+                                    var videoExtension = System.IO.Path.GetExtension(videoUrl)?.ToLower();
+                                    var mimeType = videoExtension switch
+                                    {
+                                        ".mp4" => "video/mp4",
+                                        ".webm" => "video/webm",
+                                        ".ogg" => "video/ogg",
+                                        ".mov" => "video/quicktime",
+                                        ".avi" => "video/x-msvideo",
+                                        _ => "video/mp4"
+                                    };
+                                }
+                                <source src="@videoUrl" type="@mimeType">
+                                <source src="@videoUrl" type="video/mp4">
+                                <p class="text-white p-3">Your browser does not support the video tag. 
+                                    <a href="@videoUrl" class="text-primary" download>Download the video</a> instead.
+                                </p>
+                            </video>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Having trouble playing? 
+                                <a href="@videoUrl" target="_blank" class="text-primary">Open video in new tab</a>
+                            </small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Video not available. The instructor hasn't added a video yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+            <div class="card-body">
+                <h6 class="mb-3">Course Information</h6>
+                <div class="mb-3">
+                    <strong>Price:</strong> <span class="text-primary">$@Model.Price</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Level:</strong> <span class="badge bg-secondary">@Model.Level</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Language:</strong> @Model.Language
+                </div>
+                @if (enrollment != null)
+                {
+                    <hr />
+                    <div class="mb-2">
+                        <strong>Purchased:</strong><br />
+                        <small class="text-muted">@enrollment.PurchaseDate.ToString("MMM dd, yyyy")</small>
+                    </div>
+                    <div class="alert alert-success small mb-0">
+                        <i class="fas fa-check-circle me-1"></i>You have full access to this course
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Track video play (optional)
+        const video = document.getElementById('courseVideo');
+        if (video) {
+            video.addEventListener('play', function() {
+                console.log('Course video started playing');
+            });
+        }
+    </script>
+}
+

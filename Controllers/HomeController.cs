@@ -31,13 +31,8 @@ namespace Coursify.Controllers
                     return RedirectToAction("Dashboard", "Admin");
             }
 
-            // Show public courses for non-logged in users
-            var courses = _context.Courses
-                .Where(c => c.IsPublished)
-                .Take(6)
-                .ToList();
-
-            return View(courses);
+            // Redirect to login if not authenticated
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult About()

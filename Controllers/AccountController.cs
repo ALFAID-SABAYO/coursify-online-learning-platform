@@ -68,26 +68,50 @@ namespace Coursify.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, CancellationToken cancellationToken = default)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            try
             {
-                HttpContext.Session.SetInt32("UserId", user.Id);
-                HttpContext.Session.SetString("UserRole", user.Role);
-                HttpContext.Session.SetString("UserName", user.Name);
+                // Use AsNoTracking for read-only operation
+                var user = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
-                if (user.Role == "Student")
-                    return RedirectToAction("Dashboard", "Student");
-                else if (user.Role == "Teacher")
-                    return RedirectToAction("Dashboard", "Teacher");
-                else if (user.Role == "Admin")
-                    return RedirectToAction("Dashboard", "Admin");
+                if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    // Check if user is active
+                    if (!user.IsActive)
+                    {
+                        ViewBag.Error = "Your account has been deactivated. Please contact an administrator.";
+                        return View();
+                    }
+
+                    HttpContext.Session.SetInt32("UserId", user.Id);
+                    HttpContext.Session.SetString("UserRole", user.Role);
+                    HttpContext.Session.SetString("UserName", user.Name);
+
+                    if (user.Role == "Student")
+                        return RedirectToAction("Dashboard", "Student");
+                    else if (user.Role == "Teacher")
+                        return RedirectToAction("Dashboard", "Teacher");
+                    else if (user.Role == "Admin")
+                        return RedirectToAction("Dashboard", "Admin");
+                }
+
+                ViewBag.Error = "Invalid email or password";
+                return View();
             }
-
-            ViewBag.Error = "Invalid email or password";
-            return View();
+            catch (OperationCanceledException)
+            {
+                ViewBag.Error = "Request timed out. Please try again.";
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "An error occurred. Please try again later.";
+                // Log exception in production
+                return View();
+            }
         }
 
         // Logout

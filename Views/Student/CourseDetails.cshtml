@@ -20,10 +20,26 @@
 
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <h5 class="mb-3">Curriculum</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Curriculum</h5>
+                    @if (isEnrolled && ViewBag.Enrollment != null)
+                    {
+                        <span class="badge bg-primary">Enrolled</span>
+                    }
+                </div>
                 @if (Model.Modules == null || !Model.Modules.Any())
                 {
-                    <p class="text-muted mb-0">Modules not available.</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        @if (isEnrolled)
+                        {
+                            <span>Course content is being prepared. Check back soon!</span>
+                        }
+                        else
+                        {
+                            <span>Modules not available. Enroll to access course content when it's ready.</span>
+                        }
+                    </div>
                 }
                 else
                 {
@@ -52,12 +68,26 @@
                                                 @foreach (var lesson in module.Lessons.OrderBy(l => l.OrderNo))
                                                 {
                                                     <li class="list-group-item">
-                                                        <div class="d-flex justify-content-between">
-                                                            <span>@lesson.Title</span>
-                                                            @if (lesson.Duration.HasValue)
-                                                            {
-                                                                <small class="text-muted">@lesson.Duration.Value} min</small>
-                                                            }
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span>
+                                                                @if (lesson.IsPreview)
+                                                                {
+                                                                    <span class="badge bg-info me-2">Preview</span>
+                                                                }
+                                                                @lesson.Title
+                                                            </span>
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                @if (lesson.Duration.HasValue)
+                                                                {
+                                                                    <small class="text-muted">@lesson.Duration.Value min</small>
+                                                                }
+                                                                @if (isEnrolled && ViewBag.Enrollment != null)
+                                                                {
+                                                                    <a asp-action="WatchLesson" asp-route-enrollmentId="@ViewBag.Enrollment.Id" asp-route-lessonId="@lesson.Id" class="btn btn-sm btn-outline-primary">
+                                                                        <i class="fas fa-play me-1"></i>Watch
+                                                                    </a>
+                                                                }
+                                                            </div>
                                                         </div>
                                                     </li>
                                                 }
@@ -85,17 +115,42 @@
 
                 @if (isEnrolled)
                 {
-                    <div class="alert alert-success">You are enrolled in this course.</div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>You are enrolled in this course.
+                    </div>
+                    
+                        var firstLesson = Model.Modules?.FirstOrDefault()?.Lessons?.OrderBy(l => l.OrderNo).FirstOrDefault();
+                        var hasVideoUrl = !string.IsNullOrEmpty(Model.PreviewVideoUrl);
+                    
+                    @if (firstLesson != null && ViewBag.Enrollment != null)
+                    {
+                        <a class="btn btn-primary w-100 mb-2" asp-action="WatchLesson" asp-route-enrollmentId="@ViewBag.Enrollment.Id" asp-route-lessonId="@firstLesson.Id">
+                            <i class="fas fa-play me-2"></i>Start Learning
+                        </a>
+                        <a class="btn btn-outline-primary w-100 mb-2" asp-action="CourseContent" asp-route-enrollmentId="@ViewBag.Enrollment.Id">
+                            <i class="fas fa-list me-2"></i>View All Lessons
+                        </a>
+                    }
+                    else if (hasVideoUrl && ViewBag.Enrollment != null)
+                    {
+                        <a class="btn btn-primary w-100 mb-2" asp-action="WatchCourse" asp-route-enrollmentId="@ViewBag.Enrollment.Id">
+                            <i class="fas fa-play me-2"></i>Watch Course Video
+                        </a>
+                    }
                     <a class="btn btn-outline-primary w-100" asp-action="MyCourses">Go to My Courses</a>
                 }
                 else
                 {
-                    <form asp-action="PurchaseCourse" method="post" asp-route-courseId="@Model.Id">
-                        <button type="submit" class="btn btn-primary w-100">Enroll Now</button>
-                    </form>
+                    <a class="btn btn-primary w-100" asp-action="PurchaseCourse" asp-route-courseId="@Model.Id">Enroll Now</a>
                 }
             </div>
         </div>
     </div>
 </div>
+
+
+
+
+
+
 

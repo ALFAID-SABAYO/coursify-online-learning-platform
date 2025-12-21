@@ -19,9 +19,16 @@ else
             <h4 class="mb-1">@Model.Enrollment.Course.Title</h4>
             <p class="text-muted mb-2">Issued on @Model.IssuedDate.ToShortDateString()</p>
             <p class="mb-3">Certificate Code: <strong>@Model.UniqueCode</strong></p>
+            <p class="mb-3">Student: <strong>@Model.Enrollment.Student.Name</strong></p>
 
-            <a class="btn btn-primary" href="@Model.CertificateUrl" target="_blank">View / Download</a>
+            <a class="btn btn-primary" asp-action="DownloadCertificate" asp-route-enrollmentId="@Model.EnrollmentId">Download PDF Certificate</a>
         </div>
     </div>
 }
+
+
+
+
+
+
 

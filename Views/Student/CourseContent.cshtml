@@ -1,0 +1,142 @@
+@model Coursify.Models.Course
+@{
+    ViewData["Title"] = Model?.Title ?? "Course Content";
+    var enrollmentId = ViewBag.EnrollmentId as int? ?? 0;
+    var enrollment = ViewBag.Enrollment as Coursify.Models.Enrollment;
+    var completedLessons = ViewBag.CompletedLessons as HashSet<int> ?? new HashSet<int>();
+}
+
+<div class="mb-4">
+    <a class="btn btn-link" asp-action="MyCourses">← Back to My Courses</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h2 class="mb-2">@Model.Title</h2>
+                <p class="text-muted mb-3">By @Model.Teacher.Name</p>
+                <p>@Model.Description</p>
+                
+                @if (enrollment != null)
+                {
+                    <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
+                        <div class="progress-bar" role="progressbar" style="width: @enrollment.ProgressPercentage%; background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);"></div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line me-1"></i>@Math.Round(enrollment.ProgressPercentage, 1)% completed
+                    </small>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2"></i>Course Content
+                </h5>
+                
+                @if (Model.Modules == null || !Model.Modules.Any())
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Course content is being prepared. Check back soon!
+                    </div>
+                }
+                else
+                {
+                    @foreach (var module in Model.Modules.OrderBy(m => m.OrderNo))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-folder-open me-2 text-primary"></i>@module.Title
+                            </h6>
+                            
+                            @if (module.Lessons == null || !module.Lessons.Any())
+                            {
+                                <p class="text-muted ms-4">No lessons in this module yet.</p>
+                            }
+                            else
+                            {
+                                <div class="list-group ms-4">
+                                    @foreach (var lesson in module.Lessons.OrderBy(l => l.OrderNo))
+                                    {
+                                        var isCompleted = completedLessons.Contains(lesson.Id);
+                                        <div class="list-group-item d-flex justify-content-between align-items-center @(isCompleted ? "list-group-item-success" : "")">
+                                            <div class="flex-grow-1">
+                                                @if (lesson.IsPreview)
+                                                {
+                                                    <span class="badge bg-info me-2">Preview</span>
+                                                }
+                                                @if (isCompleted)
+                                                {
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-circle me-2"></i>
+                                                }
+                                                <span class="@(isCompleted ? "text-decoration-line-through text-muted" : "fw-semibold")">@lesson.Title</span>
+                                                @if (lesson.Duration.HasValue)
+                                                {
+                                                    <small class="text-muted ms-2">
+                                                        <i class="fas fa-clock me-1"></i>@lesson.Duration.Value min
+                                                    </small>
+                                                }
+                                            </div>
+                                            <div>
+                                                @if (!string.IsNullOrEmpty(lesson.VideoUrl))
+                                                {
+                                                    <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@lesson.Id" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-play me-1"></i>Watch
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">Video Coming Soon</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+            <div class="card-body">
+                <h5 class="mb-3">Course Info</h5>
+                <div class="mb-3">
+                    <strong>Price:</strong> <span class="text-primary fs-5">$@Model.Price</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Level:</strong> <span class="badge bg-secondary">@Model.Level</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Language:</strong> @Model.Language
+                </div>
+                <div class="mb-3">
+                    <strong>Instructor:</strong> @Model.Teacher.Name
+                </div>
+                @if (enrollment != null)
+                {
+                    <hr />
+                    <div class="mb-2">
+                        <strong>Enrolled:</strong> @enrollment.PurchaseDate.ToString("MMM dd, yyyy")
+                    </div>
+                    @if (enrollment.HasCertificate)
+                    {
+                        <a asp-action="ViewCertificate" asp-route-enrollmentId="@enrollment.Id" class="btn btn-success w-100">
+                            <i class="fas fa-certificate me-2"></i>View Certificate
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

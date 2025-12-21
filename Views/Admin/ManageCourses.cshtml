@@ -39,7 +39,7 @@
                         <a class="btn btn-sm btn-outline-primary" asp-action="ToggleCourseStatus" asp-route-id="@c.Id">
                             @(c.IsPublished ? "Unpublish" : "Publish")
                         </a>
-                        <a class="btn btn-sm btn-outline-danger" asp-action="DeleteCourse" asp-route-id="@c.Id">Delete</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="DeleteCourse" asp-route-id="@c.Id" onclick="return confirm('Are you sure you want to delete this course? This will also delete all enrollments and related data.');">Delete</a>
                     </td>
                 </tr>
             }
@@ -47,4 +47,10 @@
         </table>
     </div>
 }
+
+
+
+
+
+
 

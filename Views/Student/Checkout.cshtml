@@ -1,0 +1,173 @@
+@model Coursify.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Secure Checkout";
+    var course = ViewBag.Course as Coursify.Models.Course;
+}
+
+<div class="checkout-container">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="checkout-header mb-4">
+                    <h2 class="mb-2"><i class="fas fa-lock me-2"></i>Secure Checkout</h2>
+                    <p class="text-muted mb-0">Your payment information is encrypted and secure</p>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Order Summary -->
+                    <div class="col-lg-5 order-lg-2">
+                        <div class="checkout-card order-summary-card">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-receipt me-2"></i>Order Summary
+                            </h5>
+                            
+                            @if (course != null && !string.IsNullOrEmpty(course.ThumbnailUrl))
+                            {
+                                <div class="course-thumbnail mb-3">
+                                    <img src="@course.ThumbnailUrl" alt="@Model.CourseTitle" class="img-fluid rounded" />
+                                </div>
+                            }
+                            
+                            <div class="order-item mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">@Model.CourseTitle</h6>
+                                        <small class="text-muted">By @Model.TeacherName</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-3" />
+                            
+                            <div class="order-totals">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Subtotal</span>
+                                    <span>$@Model.Price.ToString("F2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Processing Fee</span>
+                                    <span>$0.00</span>
+                                </div>
+                                <hr />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="fs-5">Total</strong>
+                                    <strong class="fs-4 text-primary">$@Model.Price.ToString("F2")</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="checkout-card mt-3">
+                            <div class="security-badges">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-shield-alt text-success me-2"></i>
+                                    <small>256-bit SSL Encryption</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-lock text-success me-2"></i>
+                                    <small>Secure Payment Processing</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <div class="col-lg-7 order-lg-1">
+                        <form asp-action="Checkout" method="post" id="checkoutForm">
+                            <input type="hidden" asp-for="CourseId" />
+                            <input type="hidden" asp-for="CourseTitle" />
+                            <input type="hidden" asp-for="Price" />
+                            <input type="hidden" asp-for="TeacherName" />
+
+                            <div class="checkout-card">
+                                <h5 class="card-title mb-4">
+                                    <i class="fas fa-credit-card me-2"></i>Payment Information
+                                </h5>
+
+                                <div class="mb-4">
+                                    <label asp-for="CardNumber" class="form-label">Card Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                                        <input asp-for="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="16" id="cardNumber" />
+                                    </div>
+                                    <span asp-validation-for="CardNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="ExpiryMonth" class="form-label">Expiry Month</label>
+                                        <select asp-for="ExpiryMonth" class="form-select">
+                                            <option value="">Month</option>
+                                            @for (int i = 1; i <= 12; i++)
+                                            {
+                                                <option value="@i">@i.ToString("00") - @DateTime.Parse($"2000-{i:00}-01").ToString("MMM")</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="ExpiryMonth" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="ExpiryYear" class="form-label">Expiry Year</label>
+                                        <select asp-for="ExpiryYear" class="form-select">
+                                            <option value="">Year</option>
+                                            @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 10; i++)
+                                            {
+                                                <option value="@i">@i</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="ExpiryYear" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="CVV" class="form-label">CVV</label>
+                                        <div class="input-group">
+                                            <input asp-for="CVV" class="form-control" placeholder="123" maxlength="4" id="cvv" />
+                                            <span class="input-group-text"><i class="fas fa-question-circle" data-bs-toggle="tooltip" title="3 or 4 digit security code"></i></span>
+                                        </div>
+                                        <span asp-validation-for="CVV" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="CardholderName" class="form-label">Cardholder Name</label>
+                                        <input asp-for="CardholderName" class="form-control" placeholder="John Doe" />
+                                        <span asp-validation-for="CardholderName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="checkout-actions mt-4">
+                                <a asp-action="CourseDetails" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">
+                                    <i class="fas fa-lock me-2"></i>Complete Purchase
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Format card number input
+        document.getElementById('cardNumber')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+        });
+
+        // Format CVV input
+        document.getElementById('cvv')?.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    </script>
+}

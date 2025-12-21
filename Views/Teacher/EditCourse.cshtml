@@ -14,6 +14,8 @@
 <form asp-action="EditCourse" method="post" enctype="multipart/form-data" class="card shadow-sm border-0 p-4">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="TeacherId" />
+    <input type="hidden" asp-for="CreatedDate" />
+    <input type="hidden" asp-for="ThumbnailUrl" />
     <div class="row g-3">
         <div class="col-md-6">
             <label asp-for="Title" class="form-label"></label>
@@ -49,8 +51,12 @@
             }
         </div>
         <div class="col-md-6">
-            <label class="form-label">Preview video URL</label>
-            <input asp-for="PreviewVideoUrl" class="form-control" />
+            <label class="form-label">Course Video URL <span class="text-danger">*</span></label>
+            <input asp-for="PreviewVideoUrl" class="form-control" placeholder="YouTube link or direct video URL" required />
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>Enter YouTube link (e.g., https://youtube.com/watch?v=...) or direct video URL. This is the main course video students will watch after purchase.
+            </small>
+            <span asp-validation-for="PreviewVideoUrl" class="text-danger"></span>
         </div>
         <div class="col-12">
             <div class="form-check">
@@ -67,4 +73,10 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+
+
+
+
+
+
 
