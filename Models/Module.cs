@@ -5,6 +5,7 @@ namespace Coursify.Models
 {
     public class Module
     {
+       
         public int Id { get; set; }
 
         [Required]
@@ -14,6 +15,7 @@ namespace Coursify.Models
         public string Title { get; set; }
 
         public string? Description { get; set; }
+       
         public int OrderNo { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

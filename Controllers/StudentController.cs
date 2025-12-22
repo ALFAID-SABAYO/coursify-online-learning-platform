@@ -3,7 +3,10 @@ using Coursify.Models;
 using Microsoft.EntityFrameworkCore;
 using coursify;
 using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 namespace Coursify.Controllers
+
 {
     public class StudentController : Controller
     {
@@ -271,7 +274,50 @@ namespace Coursify.Controllers
         }
 
         // My Courses
+        //public async Task<IActionResult> MyCourses()
+        //{
+        //    var userId = HttpContext.Session.GetInt32("UserId");
+        //    if (userId == null)
+        //    {
+        //        return RedirectToAction("Login", "Account");
+        //    }
+
+        //    var enrollments = await _context.Enrollments
+        //        .Include(e => e.Course)
+        //        .ThenInclude(c => c.Teacher)
+        //        .Include(e => e.Course.Modules)
+        //        .ThenInclude(m => m.Lessons)
+        //        .Include(e => e.Progresses)
+        //        .Where(e => e.StudentId == userId)
+        //        .OrderByDescending(e => e.PurchaseDate)
+        //        .ToListAsync();
+
+        //    return View(enrollments);
+        //}
         public async Task<IActionResult> MyCourses()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            // Load enrollments including course, modules, lessons, and progresses
+            var enrollments = await _context.Enrollments
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.Teacher)
+                .Include(e => e.Course.Modules)
+                    .ThenInclude(m => m.Lessons)
+                .Include(e => e.Progresses)
+                .Where(e => e.StudentId == userId)
+                .OrderByDescending(e => e.PurchaseDate)
+                .ToListAsync();
+
+            return View(enrollments);
+        }
+
+        // ✅ Add GenerateCertificate here alfaid add
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateCertificate(int enrollmentId)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
@@ -279,17 +325,37 @@ namespace Coursify.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var enrollments = await _context.Enrollments
+            var enrollment = await _context.Enrollments
                 .Include(e => e.Course)
-                .ThenInclude(c => c.Teacher)
-                .Include(e => e.Course.Modules)
-                .ThenInclude(m => m.Lessons)
-                .Include(e => e.Progresses)
-                .Where(e => e.StudentId == userId)
-                .OrderByDescending(e => e.PurchaseDate)
-                .ToListAsync();
+                .Include(e => e.Certificate)
+                .FirstOrDefaultAsync(e => e.Id == enrollmentId && e.StudentId == userId);
 
-            return View(enrollments);
+            if (enrollment == null)
+            {
+                return NotFound();
+            }
+
+            // Alfaid: generate certificate even if progress is 0
+            if (!enrollment.HasCertificate)
+            {
+                enrollment.CompletedDate = DateTime.UtcNow;
+                enrollment.HasCertificate = true;
+
+                if (enrollment.Certificate == null)
+                {
+                    var certificate = new Certificate
+                    {
+                        EnrollmentId = enrollmentId,
+                        CertificateUrl = $"/certificates/{Guid.NewGuid()}.pdf",
+                        IssuedDate = DateTime.UtcNow
+                    };
+                    _context.Certificates.Add(certificate);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("MyCourses");
         }
 
         // Watch Course Video (Direct video player for courses without modules)
@@ -502,12 +568,33 @@ namespace Coursify.Controllers
             enrollment.ProgressPercentage = (double)completedLessons / totalLessons * 100;
 
             // Check if course completed
-            if (enrollment.ProgressPercentage >= 100 && !enrollment.HasCertificate)
+            //if (enrollment.ProgressPercentage >= 100 && !enrollment.HasCertificate)
+            //{
+            //    enrollment.CompletedDate = DateTime.UtcNow;
+            //    enrollment.HasCertificate = true;
+
+            //    // Generate certificate if it doesn't exist
+            //    var existingCertificate = await _context.Certificates
+            //        .FirstOrDefaultAsync(c => c.EnrollmentId == enrollmentId);
+
+            //    if (existingCertificate == null)
+            //    {
+            //        var certificate = new Certificate
+            //        {
+            //            EnrollmentId = enrollmentId,
+            //            CertificateUrl = $"/certificates/{Guid.NewGuid()}.pdf",
+            //            IssuedDate = DateTime.UtcNow
+            //        };
+
+            //        _context.Certificates.Add(certificate);
+            //    }
+            //}
+            //if (enrollment.ProgressPercentage >= 100 && !enrollment.HasCertificate)//alfaid commented it
+            if (!enrollment.HasCertificate)
             {
                 enrollment.CompletedDate = DateTime.UtcNow;
                 enrollment.HasCertificate = true;
 
-                // Generate certificate if it doesn't exist
                 var existingCertificate = await _context.Certificates
                     .FirstOrDefaultAsync(c => c.EnrollmentId == enrollmentId);
 
@@ -523,6 +610,7 @@ namespace Coursify.Controllers
                     _context.Certificates.Add(certificate);
                 }
             }
+
 
             await _context.SaveChangesAsync();
 
