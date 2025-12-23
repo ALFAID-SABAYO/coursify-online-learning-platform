@@ -148,6 +148,7 @@ namespace coursify.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ContentUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDate")
@@ -173,6 +174,7 @@ namespace coursify.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("VideoUrl")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

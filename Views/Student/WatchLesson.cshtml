@@ -1,11 +1,19 @@
 @model Coursify.Models.Lesson
 @{
     ViewData["Title"] = Model?.Title ?? "Watch Lesson";
+
     var enrollmentId = ViewBag.EnrollmentId as int? ?? 0;
     var course = ViewBag.Course as Coursify.Models.Course;
     var isCompleted = ViewBag.IsCompleted as bool? ?? false;
     var nextLesson = ViewBag.NextLesson as Coursify.Models.Lesson;
     var prevLesson = ViewBag.PrevLesson as Coursify.Models.Lesson;
+
+    string embedUrl = null;
+    if (!string.IsNullOrEmpty(Model.VideoUrl) && Model.VideoUrl.Contains("youtube.com"))
+    {
+        var videoId = Model.VideoUrl.Split("v=")[1];
+        embedUrl = "https://www.youtube.com/embed/" + videoId;
+    }
 }
 
 <div class="row g-4">
@@ -20,10 +28,17 @@
                     </span>
                 }
             </div>
-            
+
             @if (!string.IsNullOrEmpty(Model.VideoUrl))
             {
-                <div class="video-player-wrapper">
+                @if (embedUrl != null)
+                {
+                    <!-- YouTube Embed -->
+                    <iframe width="100%" height="400" src="@embedUrl" frameborder="0" allowfullscreen></iframe>
+                }
+                else
+                {
+                    <!-- Local/Uploaded Video -->
                     <video id="lessonVideo" controls controlsList="nodownload" preload="metadata" class="w-100" style="background: #000;">
                         @{
                             var videoExtension = System.IO.Path.GetExtension(Model.VideoUrl)?.ToLower();
@@ -38,15 +53,16 @@
                             };
                         }
                         <source src="@Model.VideoUrl" type="@mimeType">
-                        <source src="@Model.VideoUrl" type="video/mp4">
-                        <p class="text-white p-3">Your browser does not support the video tag. 
+                        <p class="text-white p-3">
+                            Your browser does not support the video tag.
                             <a href="@Model.VideoUrl" class="text-primary" download>Download the video</a> instead.
                         </p>
                     </video>
-                </div>
+                }
+
                 <div class="mt-2">
                     <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>Having trouble playing? 
+                        <i class="fas fa-info-circle me-1"></i>Having trouble playing?
                         <a href="@Model.VideoUrl" target="_blank" class="text-primary">Open video in new tab</a>
                     </small>
                 </div>
@@ -54,7 +70,7 @@
             else
             {
                 <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Video not available. The instructor hasn't uploaded the video content yet.
+                    <i class="fas fa-exclamation-triangle me-2"></i>Video not available. The instructor hasn't uploaded the content yet.
                 </div>
             }
 
@@ -87,7 +103,7 @@
         </div>
 
         <!-- Navigation -->
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between mt-4">
             @if (prevLesson != null)
             {
                 <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@prevLesson.Id" class="btn btn-outline-primary">
@@ -98,7 +114,7 @@
             {
                 <span></span>
             }
-            
+
             @if (nextLesson != null)
             {
                 <a asp-action="WatchLesson" asp-route-enrollmentId="@enrollmentId" asp-route-lessonId="@nextLesson.Id" class="btn btn-primary">
@@ -117,9 +133,7 @@
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Course Content
-                </h5>
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Course Content</h5>
             </div>
             <div class="card-body">
                 @if (course != null && course.Modules != null)
@@ -134,7 +148,7 @@
                                     var lessonCompleted = ViewBag.CompletedLessons as HashSet<int> ?? new HashSet<int>();
                                     var isLessonCompleted = lessonCompleted.Contains(lesson.Id);
                                     var isCurrentLesson = lesson.Id == Model.Id;
-                                    
+
                                     <li class="mb-2">
                                         @if (isCurrentLesson)
                                         {
@@ -156,6 +170,7 @@
                                                 @lesson.Title
                                             </a>
                                         }
+
                                         @if (lesson.Duration.HasValue)
                                         {
                                             <small class="text-muted ms-2">@lesson.Duration.Value min</small>
@@ -173,13 +188,9 @@
 
 @section Scripts {
     <script>
-        // Track video progress (optional - can be enhanced later)
         const video = document.getElementById('lessonVideo');
         if (video) {
-            video.addEventListener('play', function() {
-                console.log('Video started playing');
-            });
+            video.addEventListener('play', () => console.log('Video started playing'));
         }
     </script>
 }
-

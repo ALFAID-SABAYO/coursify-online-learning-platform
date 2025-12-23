@@ -13,8 +13,8 @@ namespace Coursify.Models
         public string Title { get; set; }
 
         public string? Description { get; set; }
-        public string? VideoUrl { get; set; }
-        public string? ContentUrl { get; set; }
+        public string VideoUrl { get; set; }
+        public string ContentUrl { get; set; }
         public int? Duration { get; set; }
         public int OrderNo { get; set; }
         public bool IsPreview { get; set; } = false;

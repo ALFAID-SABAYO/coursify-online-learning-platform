@@ -200,22 +200,49 @@ namespace Coursify.Controllers
                 return View(existingCourse);
             }
         }
+        public async Task<IActionResult> CourseDetails(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
 
-        // Add Module
+            var course = await _context.Courses
+                .Include(c => c.Modules)
+                    .ThenInclude(m => m.Lessons)
+                .FirstOrDefaultAsync(c => c.Id == id && c.TeacherId == userId);
+
+            if (course == null)
+                return NotFound();
+
+            return View(course);
+        }
+
+
+        // GET: show AddModule form
         public IActionResult AddModule(int courseId)
         {
             ViewBag.CourseId = courseId;
-            return View();
+            return View(new Module { CourseId = courseId });
         }
 
+        // POST: save module
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddModule(Module module)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.CourseId = module.CourseId;
+                return View(module);
+            }
+
             module.CreatedDate = DateTime.UtcNow;
+
             _context.Modules.Add(module);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("CourseDetails", new { id = module.CourseId });
+            // 👇 SAME controller ka CourseDetails
+            return RedirectToAction("CourseDetails", "Teacher", new { id = module.CourseId });
         }
 
         // Add Lesson
@@ -226,57 +253,79 @@ namespace Coursify.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddLesson(Lesson lesson, IFormFile videoFile)
         {
-            if (videoFile == null || videoFile.Length == 0)
+            ViewBag.ModuleId = lesson.ModuleId; // Keep module info for view in case of error
+
+            // Ensure either YouTube link or uploaded video is provided
+            if (string.IsNullOrEmpty(lesson.VideoUrl) && (videoFile == null || videoFile.Length == 0))
             {
-                ModelState.AddModelError("videoFile", "Video file is required.");
-                ViewBag.ModuleId = lesson.ModuleId;
+                ModelState.AddModelError("VideoUrl", "Either upload a video or provide a YouTube link.");
+            }
+
+            // Validate model
+            if (!ModelState.IsValid)
+            {
                 return View(lesson);
             }
 
-            // Validate file size (500MB max)
-            if (videoFile.Length > 500 * 1024 * 1024)
+            // Handle video file if provided
+            if (videoFile != null && videoFile.Length > 0)
             {
-                ModelState.AddModelError("videoFile", "Video file size must be less than 500MB.");
-                ViewBag.ModuleId = lesson.ModuleId;
-                return View(lesson);
+                // Validate file size (500MB max)
+                if (videoFile.Length > 500 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("videoFile", "Video file size must be less than 500MB.");
+                    return View(lesson);
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov", ".avi" };
+                var fileExtension = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    ModelState.AddModelError("videoFile", "Invalid video format. Allowed: MP4, WebM, OGG, MOV, AVI.");
+                    return View(lesson);
+                }
+
+                // Create videos directory if it doesn't exist
+                var videosPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "videos");
+                Directory.CreateDirectory(videosPath);
+
+                // Generate unique filename
+                var fileName = Guid.NewGuid().ToString() + fileExtension;
+                var filePath = Path.Combine(videosPath, fileName);
+
+                // Save video file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await videoFile.CopyToAsync(stream);
+                }
+
+                // Set VideoUrl to uploaded file path
+                lesson.VideoUrl = $"/videos/{fileName}";
             }
 
-            // Validate file type
-            var allowedExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov", ".avi" };
-            var fileExtension = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(fileExtension))
-            {
-                ModelState.AddModelError("videoFile", "Invalid video format. Allowed: MP4, WebM, OGG, MOV, AVI");
-                ViewBag.ModuleId = lesson.ModuleId;
-                return View(lesson);
-            }
-
-            // Create videos directory if it doesn't exist
-            var videosPath = Path.Combine("wwwroot", "videos");
-            Directory.CreateDirectory(videosPath);
-
-            // Generate unique filename
-            var fileName = Guid.NewGuid().ToString() + fileExtension;
-            var filePath = Path.Combine(videosPath, fileName);
-
-            // Save video file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await videoFile.CopyToAsync(stream);
-            }
-
-            // Set video URL
-            lesson.VideoUrl = $"/videos/{fileName}";
+            // Set creation date
             lesson.CreatedDate = DateTime.UtcNow;
-            
+
+            // Save lesson to database
             _context.Lessons.Add(lesson);
             await _context.SaveChangesAsync();
 
+            // Redirect to course details
             var module = await _context.Modules.FindAsync(lesson.ModuleId);
+            if (module == null)
+            {
+                ModelState.AddModelError("", "Module not found.");
+                return View(lesson);
+            }
+
             return RedirectToAction("CourseDetails", new { id = module.CourseId });
         }
+
+
 
         // View Course Students
         public async Task<IActionResult> CourseStudents(int courseId)

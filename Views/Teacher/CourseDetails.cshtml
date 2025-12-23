@@ -1,0 +1,30 @@
+﻿@model Coursify.Models.Course
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@Model.Title</h2>
+    <a asp-action="AddModule" asp-route-courseId="@Model.Id" class="btn btn-success">
+        + Add Module
+    </a>
+</div>
+
+@foreach (var module in Model.Modules.OrderBy(m => m.OrderNo))
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <h5>@module.Title</h5>
+            <a asp-action="AddLesson" asp-route-moduleId="@module.Id" class="btn btn-sm btn-primary">
+                Add Lesson
+            </a>
+        </div>
+        <div class="card-body">
+            <p>@module.Description</p>
+
+            <ul>
+                @foreach (var lesson in module.Lessons.OrderBy(l => l.OrderNo))
+                {
+                    <li>@lesson.Title</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
