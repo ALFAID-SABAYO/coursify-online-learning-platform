@@ -3,8 +3,6 @@ using Coursify.Models;
 using Microsoft.EntityFrameworkCore;
 using coursify;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 namespace Coursify.Controllers
 
 {
@@ -263,6 +261,27 @@ namespace Coursify.Controllers
             _context.Transactions.Add(teacherTransaction);
 
             await _context.SaveChangesAsync();
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user != null)
+            {
+                var emailService = new EmailService();
+                string subject = "Course Purchase Confirmation";
+                string body = $@"
+              <h2>Hello {user.Name},</h2>
+              <p>You have successfully purchased the course: <b>{courseToEnroll.Title}</b>.</p>
+              <p>Purchase Date: {DateTime.Now:d}</p>
+              <p>Happy Learning!</p>
+               ";
+
+                try
+                {
+                    emailService.SendEmail(user.Email, subject, body);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Email failed: " + ex.Message);
+                }
+            }
 
             // Redirect to watch course video directly after purchase
             if (!string.IsNullOrEmpty(courseToEnroll.PreviewVideoUrl))
