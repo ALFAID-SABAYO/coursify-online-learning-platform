@@ -37,11 +37,11 @@
                     </td>
                     <td class="text-end">
                         @if (user.Role == "Teacher")
-                        {
+                       @* {
                             <a class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-warning")" asp-action="BanTeacher" asp-route-id="@user.Id">
                                 @(user.IsActive ? "Ban Teacher" : "Unban Teacher")
                             </a>
-                        }
+                        }*@
                             @if (user.Role != "Admin")
                             {
                                 <a class="btn btn-sm btn-outline-primary"
