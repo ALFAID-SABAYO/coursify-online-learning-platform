@@ -1,128 +1,39 @@
-@* @model IEnumerable<Coursify.Models.Enrollment>
-@{
-    ViewData["Title"] = "My Courses";
-}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-0">My Courses</h2>
-        <p class="text-muted mb-0">Track your progress and continue learning.</p>
-    </div>
-    <a class="btn btn-primary" asp-action="BrowseCourses">Browse more</a>
-</div>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-info">You have not enrolled in any courses yet.</div>
-}
-else
-{
-    <div class="row g-4">
-        @foreach (var e in Model)
-        {
-            <div class="col-md-6">
-                <div class="card h-100 shadow-sm border-0 course-card" style="border-radius: 12px;">
-                    @if (!string.IsNullOrEmpty(e.Course.ThumbnailUrl))
-                    {
-                        <img src="@e.Course.ThumbnailUrl" class="card-img-top" alt="@e.Course.Title" style="height: 180px; object-fit: cover; border-radius: 12px 12px 0 0;">
-                    }
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="card-title mb-0 fw-bold">@e.Course.Title</h5>
-                            <span class="badge bg-secondary">@e.Course.Level</span>
-                        </div>
-                        <p class="text-muted mb-2 small">
-                            <i class="fas fa-user-tie me-1"></i>By @e.Course.Teacher.Name
-                        </p>
-                        <p class="mb-3 text-truncate">@e.Course.Description</p>
-
-                        <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
-                            <div class="progress-bar" role="progressbar" style="width: @e.ProgressPercentage%; background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);"></div>
-                        </div>
-                        <small class="text-muted d-block mb-3">
-                            <i class="fas fa-chart-line me-1"></i>@Math.Round(e.ProgressPercentage, 1)% completed
-                        </small>
-
-                        @{
-                            var totalLessons = e.Course?.Modules?.SelectMany(m => m.Lessons).Count() ?? 0;
-                            var completedLessons = e.Course?.Modules?.SelectMany(m => m.Lessons).Count(l => 
-                                e.Progresses?.Any(p => p.LessonId == l.Id && p.IsCompleted) == true) ?? 0;
-                        }
-                        @if (totalLessons > 0)
-                        {
-                            <small class="text-muted d-block mb-3">
-                                <i class="fas fa-video me-1"></i>@completedLessons of @totalLessons lessons completed
-                            </small>
-                        }
-
-                        <div class="d-flex justify-content-between flex-wrap gap-2">
-                            @{
-                                var firstLesson = e.Course?.Modules?.OrderBy(m => m.OrderNo)
-                                    .SelectMany(m => m.Lessons.OrderBy(l => l.OrderNo))
-                                    .FirstOrDefault();
-                                var hasVideoUrl = !string.IsNullOrEmpty(e.Course.PreviewVideoUrl);
-                            }
-                            @if (firstLesson != null)
-                            {
-                                <a class="btn btn-primary btn-sm" asp-action="WatchLesson" asp-route-enrollmentId="@e.Id" asp-route-lessonId="@firstLesson.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-play me-1"></i>Continue Learning
-                                </a>
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseContent" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-list me-1"></i>View All Lessons
-                                </a>
-                            }
-                            else if (hasVideoUrl)
-                            {
-                                <a class="btn btn-primary btn-sm" asp-action="WatchCourse" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-play me-1"></i>Watch Course Video
-                                </a>
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseDetails" asp-route-id="@e.CourseId" style="border-radius: 8px;">
-                                    <i class="fas fa-info-circle me-1"></i>Course Details
-                                </a>
-                            }
-                            else
-                            {
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseDetails" asp-route-id="@e.CourseId" style="border-radius: 8px;">
-                                    <i class="fas fa-eye me-1"></i>View Course
-                                </a>
-                            }
-                            @if (e.HasCertificate)
-                            {
-                                <div class="d-flex gap-2">
-                                    <a class="btn btn-success btn-sm" asp-action="ViewCertificate" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                        <i class="fas fa-certificate me-1"></i>Certificate
-                                    </a>
-                                    <a class="btn btn-outline-success btn-sm" asp-action="DownloadCertificate" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                        <i class="fas fa-download me-1"></i>Download
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-}
-
-
-
-
-
-
- *@
-@* MyCourses.cshtml - Edited by ALFAID SABAYO *@
 @model IEnumerable<Coursify.Models.Enrollment>
 @{
     ViewData["Title"] = "My Courses";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show">
+        @TempData["Info"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="mb-0">My Courses</h2>
         <p class="text-muted mb-0">Track your progress and continue learning.</p>
     </div>
-    <a class="btn btn-primary" asp-action="BrowseCourses">Browse more</a>
+    <a class="btn btn-course btn-course-primary"
+       asp-action="BrowseCourses">
+        <i class="fas fa-search me-1"></i>Browse Courses
+    </a>
 </div>
 
 @if (!Model.Any())
@@ -135,98 +46,109 @@ else
         @foreach (var e in Model)
         {
             <div class="col-md-6">
-                <div class="card h-100 shadow-sm border-0 course-card" style="border-radius: 12px;">
+                <div class="card h-100 shadow-sm border-0" style="border-radius:14px;">
+
                     @if (!string.IsNullOrEmpty(e.Course.ThumbnailUrl))
                     {
-                        <img src="@e.Course.ThumbnailUrl" class="card-img-top" alt="@e.Course.Title" style="height: 180px; object-fit: cover; border-radius: 12px 12px 0 0;">
+                        <img src="@e.Course.ThumbnailUrl"
+                             class="card-img-top"
+                             style="height:180px;object-fit:cover;border-radius:14px 14px 0 0;">
                     }
+
                     <div class="card-body">
+
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="card-title mb-0 fw-bold">@e.Course.Title</h5>
+                            <h5 class="fw-bold mb-0">@e.Course.Title</h5>
                             <span class="badge bg-secondary">@e.Course.Level</span>
                         </div>
-                        <p class="text-muted mb-2 small">
-                            <i class="fas fa-user-tie me-1"></i>By @e.Course.Teacher.Name
+
+                        <p class="text-muted small">
+                            <i class="fas fa-user-tie me-1"></i>@e.Course.Teacher.Name
                         </p>
-                        <p class="mb-3 text-truncate">@e.Course.Description</p>
 
-                        @* <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
-                            <div class="progress-bar" role="progressbar" style="width: @e.ProgressPercentage%; background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);"></div>
-                        </div> *@
-                        @* <small class="text-muted d-block mb-3">
-                            <i class="fas fa-chart-line me-1"></i>@Math.Round(e.ProgressPercentage, 1)% completed
-                        </small> *@
+                        <p class="text-truncate">@e.Course.Description</p>
 
-                        @* Count total/completed lessons *@
-                        @{
-                            var totalLessons = e.Course?.Modules?.SelectMany(m => m.Lessons).Count() ?? 0;
-                            var completedLessons = e.Course?.Modules?.SelectMany(m => m.Lessons).Count(l =>
-                            e.Progresses?.Any(p => p.LessonId == l.Id && p.IsCompleted) == true) ?? 0;
-                        }
-                        @if (totalLessons > 0)
-                        {
-                            <small class="text-muted d-block mb-3">
-                                <i class="fas fa-video me-1"></i>@completedLessons of @totalLessons lessons completed
-                            </small>
-                        }
+                        <!-- Progress -->
+                        <div class="progress mb-2" style="height:10px;border-radius:10px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 style="width:@e.ProgressPercentage%;background:linear-gradient(90deg,#2563eb,#3b82f6)">
+                            </div>
+                        </div>
 
-                        <div class="d-flex justify-content-between flex-wrap gap-2">
-                            @* Determine first lesson or course video *@
+                        <small class="text-muted d-block mb-3">
+                            <i class="fas fa-chart-line me-1"></i>
+                            @Math.Round(e.ProgressPercentage, 1)% completed
+                        </small>
+
+                        <!-- Buttons -->
+                        <div class="d-flex flex-wrap gap-2 justify-content-between">
+
                             @{
-                                var firstLesson = e.Course?.Modules?.OrderBy(m => m.OrderNo)
+                                var firstLesson = e.Course?.Modules?
+                                .OrderBy(m => m.OrderNo)
                                 .SelectMany(m => m.Lessons.OrderBy(l => l.OrderNo))
                                 .FirstOrDefault();
-                                var hasVideoUrl = !string.IsNullOrEmpty(e.Course.PreviewVideoUrl);
                             }
 
-                            @* Main course action buttons *@
                             @if (firstLesson != null)
                             {
-                                <a class="btn btn-primary btn-sm" asp-action="WatchLesson" asp-route-enrollmentId="@e.Id" asp-route-lessonId="@firstLesson.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-play me-1"></i>Continue Learning
+                                <a class="btn btn-course btn-course-primary btn-sm"
+                                   asp-action="WatchLesson"
+                                   asp-route-enrollmentId="@e.Id"
+                                   asp-route-lessonId="@firstLesson.Id">
+                                    <i class="fas fa-play me-1"></i>Continue
                                 </a>
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseContent" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-list me-1"></i>View All Lessons
-                                </a>
-                            }
-                            else if (hasVideoUrl)
-                            {
-                                <a class="btn btn-primary btn-sm" asp-action="WatchCourse" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                    <i class="fas fa-play me-1"></i>Watch Course Video
-                                </a>
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseDetails" asp-route-id="@e.CourseId" style="border-radius: 8px;">
-                                    <i class="fas fa-info-circle me-1"></i>Course Details
-                                </a>
-                            }
-                            else
-                            {
-                                <a class="btn btn-outline-primary btn-sm" asp-action="CourseDetails" asp-route-id="@e.CourseId" style="border-radius: 8px;">
-                                    <i class="fas fa-eye me-1"></i>View Course
+
+                                <a class="btn btn-course btn-course-outline btn-sm"
+                                   asp-action="CourseContent"
+                                   asp-route-enrollmentId="@e.Id">
+                                    <i class="fas fa-list me-1"></i>Lessons
                                 </a>
                             }
 
-                            @* Certificate buttons: View/Download if exists, Generate if not *@
-                            @if (e.HasCertificate)
+                            @if (e.HasCertificate && e.ProgressPercentage >= 80)
                             {
-                                <div class="mt-2 d-flex gap-2 flex-wrap">
-                                    <a class="btn btn-success btn-sm" asp-action="ViewCertificate" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
-                                        <i class="fas fa-certificate me-1"></i>View Certificate
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-course btn-course-success btn-sm"
+                                       asp-action="ViewCertificate"
+                                       asp-route-enrollmentId="@e.Id">
+                                        <i class="fas fa-certificate me-1"></i>View
                                     </a>
-                                    <a class="btn btn-outline-success btn-sm" asp-action="DownloadCertificate" asp-route-enrollmentId="@e.Id" style="border-radius: 8px;">
+
+                                    <a class="btn btn-course btn-course-outline btn-sm"
+                                       asp-action="DownloadCertificate"
+                                       asp-route-enrollmentId="@e.Id">
                                         <i class="fas fa-download me-1"></i>Download
                                     </a>
                                 </div>
                             }
                             else
                             {
-                                @* ALFAID SABAYO: Button to generate certificate even if progress is zero *@
-                                <form asp-action="GenerateCertificate" method="post">
-                                    <input type="hidden" name="enrollmentId" value="@e.Id" />
-                                    <button type="submit" class="btn btn-warning btn-sm" style="border-radius:8px;">
-                                        <i class="fas fa-certificate me-1"></i>Generate Certificate
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn btn-course btn-course-warning btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#progressModal-@e.Id">
+                                    <i class="fas fa-lock me-1"></i>Generate Certificate
+                                </button>
                             }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="progressModal-@e.Id">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title">Certificate Locked</h5>
+                            <button class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            Complete at least <strong>80%</strong> to unlock certificate.
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
                         </div>
                     </div>
                 </div>
@@ -235,3 +157,46 @@ else
     </div>
 }
 
+<style>
+    .btn-course {
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-weight: 500;
+        transition: all .25s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+        .btn-course:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,.15);
+        }
+
+    .btn-course-primary {
+        background: linear-gradient(135deg,#2563eb,#3b82f6);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-course-outline {
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        background: #fff;
+    }
+
+        .btn-course-outline:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+
+    .btn-course-success {
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-course-warning {
+        background: linear-gradient(135deg,#f59e0b,#fbbf24);
+        border: none;
+        color: #1f2937;
+    }
+</style>

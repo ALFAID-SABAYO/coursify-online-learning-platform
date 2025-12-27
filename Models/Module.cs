@@ -16,11 +16,11 @@ namespace Coursify.Models
 
         public string? Description { get; set; }
        
-        public int OrderNo { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public int? OrderNo { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         // Relationships
-        public Course Course { get; set; }
+        public Course? Course { get; set; }
         public List<Lesson> Lessons { get; set; } = new();
     }
 }

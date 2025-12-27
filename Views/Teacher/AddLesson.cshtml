@@ -1,4 +1,4 @@
-@model Coursify.Models.Lesson
+﻿@model Coursify.Models.Lesson
 
 @{
     ViewData["Title"] = "Add Lesson";
@@ -13,8 +13,21 @@
     <a class="btn btn-outline-secondary" href="javascript:history.back()">Back</a>
 </div>
 
+<!-- ✅ Show server-side validation errors -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
 <form asp-action="AddLesson" method="post" enctype="multipart/form-data" class="card shadow-sm border-0 p-4">
-    @Html.AntiForgeryToken()
+    @Html.AntiForgeryToken() <!-- ✅ Anti-forgery token -->
 
     <input type="hidden" asp-for="ModuleId" value="@moduleId" />
 
@@ -25,61 +38,41 @@
             <label asp-for="Title" class="form-label fw-bold">
                 Lesson Title <span class="text-danger">*</span>
             </label>
-            <input asp-for="Title"
-                   class="form-control"
-                   placeholder="e.g. Introduction to React"
-                   required />
+            <input asp-for="Title" class="form-control" placeholder="e.g. Introduction to React" required />
             <span asp-validation-for="Title" class="text-danger"></span>
         </div>
 
         <!-- Description -->
         <div class="col-12">
             <label asp-for="Description" class="form-label fw-bold">Description</label>
-            <textarea asp-for="Description"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Brief description of this lesson"></textarea>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description of this lesson"></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
         <!-- YouTube Link -->
         <div class="col-12">
             <label asp-for="VideoUrl" class="form-label fw-bold">YouTube Video Link</label>
-            <input asp-for="VideoUrl"
-                   class="form-control"
-                   placeholder="https://www.youtube.com/watch?v=XXXX" />
-            <small class="text-muted">Paste full YouTube video link (optional if uploading video file)</small>
+            <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=XXXX" />
+            <small class="text-muted">Optional if uploading a video file</small>
             <span asp-validation-for="VideoUrl" class="text-danger"></span>
         </div>
 
         <!-- Upload Video File -->
         <div class="col-12">
             <label for="videoFile" class="form-label fw-bold">Upload Video (Optional if YouTube link provided)</label>
-            <input type="file"
-                   class="form-control"
-                   id="videoFile"
-                   name="videoFile"
-                   accept=".mp4,.webm,.ogg,.mov,.avi" />
+            <input type="file" class="form-control" id="videoFile" name="videoFile" accept=".mp4,.webm,.ogg,.mov,.avi" />
             <small class="text-muted">Allowed formats: MP4, WebM, OGG, MOV, AVI (max 500MB)</small>
         </div>
 
         <!-- Duration & Order Number -->
         <div class="col-md-6">
             <label asp-for="Duration" class="form-label fw-bold">Duration (minutes)</label>
-            <input asp-for="Duration"
-                   class="form-control"
-                   type="number"
-                   min="1"
-                   placeholder="e.g. 15" />
+            <input asp-for="Duration" class="form-control" type="number" min="1" placeholder="e.g. 15" />
             <span asp-validation-for="Duration" class="text-danger"></span>
         </div>
         <div class="col-md-6">
             <label asp-for="OrderNo" class="form-label fw-bold">Order Number</label>
-            <input asp-for="OrderNo"
-                   class="form-control"
-                   type="number"
-                   min="1"
-                   value="1" />
+            <input asp-for="OrderNo" class="form-control" type="number" min="1" value="1" />
             <span asp-validation-for="OrderNo" class="text-danger"></span>
         </div>
 
@@ -87,22 +80,15 @@
         <div class="col-12">
             <div class="form-check mt-2">
                 <input asp-for="IsPreview" class="form-check-input" type="checkbox" />
-                <label asp-for="IsPreview" class="form-check-label">
-                    Mark as Preview (Free to watch)
-                </label>
+                <label asp-for="IsPreview" class="form-check-label">Mark as Preview (Free to watch)</label>
             </div>
         </div>
 
         <!-- Buttons -->
         <div class="col-12 mt-3">
-            <button type="submit" class="btn btn-success px-4">
-                Add Lesson
-            </button>
-            <a href="javascript:history.back()" class="btn btn-outline-secondary ms-2">
-                Cancel
-            </a>
+            <button type="submit" class="btn btn-success px-4">Add Lesson</button>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary ms-2">Cancel</a>
         </div>
-
     </div>
 </form>
 

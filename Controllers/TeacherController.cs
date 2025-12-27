@@ -232,16 +232,20 @@ namespace Coursify.Controllers
         {
             if (!ModelState.IsValid)
             {
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"{state.Key}: {error.ErrorMessage}");
+                    }
+                }
+
                 ViewBag.CourseId = module.CourseId;
                 return View(module);
             }
 
-            module.CreatedDate = DateTime.UtcNow;
-
             _context.Modules.Add(module);
             await _context.SaveChangesAsync();
-
-            // 👇 SAME controller ka CourseDetails
             return RedirectToAction("CourseDetails", "Teacher", new { id = module.CourseId });
         }
 
@@ -256,65 +260,57 @@ namespace Coursify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddLesson(Lesson lesson, IFormFile videoFile)
         {
-            ViewBag.ModuleId = lesson.ModuleId; // Keep module info for view in case of error
+            ViewBag.ModuleId = lesson.ModuleId; // Keep module info if validation fails
 
-            // Ensure either YouTube link or uploaded video is provided
+            // ✅ Ensure either YouTube link or uploaded video is provided
             if (string.IsNullOrEmpty(lesson.VideoUrl) && (videoFile == null || videoFile.Length == 0))
             {
                 ModelState.AddModelError("VideoUrl", "Either upload a video or provide a YouTube link.");
             }
 
-            // Validate model
+            // ✅ Validate model
             if (!ModelState.IsValid)
             {
                 return View(lesson);
             }
 
-            // Handle video file if provided
+            // ✅ Handle uploaded video
             if (videoFile != null && videoFile.Length > 0)
             {
-                // Validate file size (500MB max)
                 if (videoFile.Length > 500 * 1024 * 1024)
                 {
                     ModelState.AddModelError("videoFile", "Video file size must be less than 500MB.");
                     return View(lesson);
                 }
 
-                // Validate file type
                 var allowedExtensions = new[] { ".mp4", ".webm", ".ogg", ".mov", ".avi" };
-                var fileExtension = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(fileExtension))
+                var ext = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
                 {
                     ModelState.AddModelError("videoFile", "Invalid video format. Allowed: MP4, WebM, OGG, MOV, AVI.");
                     return View(lesson);
                 }
 
-                // Create videos directory if it doesn't exist
                 var videosPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "videos");
                 Directory.CreateDirectory(videosPath);
 
-                // Generate unique filename
-                var fileName = Guid.NewGuid().ToString() + fileExtension;
+                var fileName = Guid.NewGuid().ToString() + ext;
                 var filePath = Path.Combine(videosPath, fileName);
 
-                // Save video file
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await videoFile.CopyToAsync(stream);
                 }
 
-                // Set VideoUrl to uploaded file path
                 lesson.VideoUrl = $"/videos/{fileName}";
             }
 
-            // Set creation date
+            // ✅ Set UTC creation date
             lesson.CreatedDate = DateTime.UtcNow;
 
-            // Save lesson to database
             _context.Lessons.Add(lesson);
             await _context.SaveChangesAsync();
 
-            // Redirect to course details
             var module = await _context.Modules.FindAsync(lesson.ModuleId);
             if (module == null)
             {

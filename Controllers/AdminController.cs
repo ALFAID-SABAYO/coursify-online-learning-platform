@@ -36,10 +36,13 @@ namespace Coursify.Controllers
             var totalEnrollments = await _context.Enrollments.CountAsync();
 
             // Calculate total revenue and admin commission
-            var totalRevenue = await _context.Enrollments.SumAsync(e => e.AmountPaid);
+            var totalRevenue = await _context.Enrollments
+     .SumAsync(e => (decimal?)e.AmountPaid) ?? 0;
+
             var adminCommission = await _context.Transactions
                 .Where(t => t.RecipientRole == "Admin")
-                .SumAsync(t => t.Amount);
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
 
             ViewBag.TotalUsers = totalUsers;
             ViewBag.TotalStudents = totalStudents;

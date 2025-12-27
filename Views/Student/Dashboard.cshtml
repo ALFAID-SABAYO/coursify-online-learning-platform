@@ -1,4 +1,4 @@
-@model IEnumerable<Coursify.Models.Course>
+﻿@model IEnumerable<Coursify.Models.Course>
 @using Coursify.Models
 @{
     ViewData["Title"] = "Student Dashboard";
@@ -6,64 +6,64 @@
     var certificates = ViewBag.Certificates as List<Certificate> ?? new List<Certificate>();
 }
 
+<!-- HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="mb-0">Student Dashboard</h2>
-        <p class="text-muted mb-0">Browse and enroll in courses</p>
+        <h2 class="fw-bold mb-1">🎓 Student Dashboard</h2>
+        <p class="text-muted mb-0">Browse courses and track your learning journey</p>
     </div>
-    <div>
-        <a class="btn btn-outline-secondary me-2" asp-action="MyCourses">My Courses</a>
-        <span class="badge bg-primary">@enrollments.Count Enrolled</span>
-    </div>
-</div>
-
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="fas fa-book-reader fa-2x text-primary me-3"></i>
-                    <div>
-                        <p class="text-muted mb-1 small">Enrolled Courses</p>
-                        <h3 class="mb-0">@enrollments.Count</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="fas fa-certificate fa-2x text-success me-3"></i>
-                    <div>
-                        <p class="text-muted mb-1 small">Certificates Earned</p>
-                        <h3 class="mb-0">@certificates.Count</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="fas fa-graduation-cap fa-2x text-info me-3"></i>
-                    <div>
-                        <p class="text-muted mb-1 small">Available Courses</p>
-                        <h3 class="mb-0">@Model.Count()</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-ui btn-ui-outline" asp-action="MyCourses">
+            <i class="fas fa-book me-1"></i>My Courses
+        </a>
+        <span class="badge bg-primary fs-6 px-3 py-2">@enrollments.Count Enrolled</span>
     </div>
 </div>
 
-<div class="card shadow-sm border-0 mb-4">
+<!-- STATS -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card stat-card stat-blue">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-book-reader fa-2x me-3"></i>
+                <div>
+                    <small>Enrolled Courses</small>
+                    <h3 class="mb-0">@enrollments.Count</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card stat-green">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-certificate fa-2x me-3"></i>
+                <div>
+                    <small>Certificates Earned</small>
+                    <h3 class="mb-0">@certificates.Count</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card stat-purple">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-graduation-cap fa-2x me-3"></i>
+                <div>
+                    <small>Available Courses</small>
+                    <h3 class="mb-0">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- COURSES -->
+<div class="card dashboard-card mb-5">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">All Courses</h5>
-        </div>
+        <h5 class="fw-bold mb-4">📚 All Courses</h5>
+
         @if (!Model.Any())
         {
             <div class="alert alert-info">No courses available right now.</div>
@@ -74,25 +74,34 @@
                 @foreach (var course in Model)
                 {
                     <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0" style="margin-bottom: 15px;">
+                        <div class="card course-card h-100">
                             @if (!string.IsNullOrEmpty(course.ThumbnailUrl))
                             {
-                                <img src="@course.ThumbnailUrl" class="card-img-top" alt="@course.Title" style="height: 200px; object-fit: cover; border-radius: 12px 12px 0 0;">
+                                <img src="@course.ThumbnailUrl"
+                                     class="card-img-top"
+                                     style="height:200px;object-fit:cover;">
                             }
+
                             <div class="card-body">
-                                <h5 class="card-title fw-bold">@course.Title</h5>
+                                <h5 class="fw-bold">@course.Title</h5>
+
                                 <p class="text-muted small mb-2">
-                                    <i class="fas fa-user-tie me-1"></i>By @course.Teacher.Name
+                                    <i class="fas fa-user-tie me-1"></i>@course.Teacher.Name
                                 </p>
-                                <p class="card-text text-truncate">@course.Description</p>
+
+                                <p class="text-truncate">@course.Description</p>
+
                                 <div class="mb-3">
-                                    <span class="badge bg-secondary me-1">@course.Level</span>
+                                    <span class="badge bg-secondary">@course.Level</span>
                                     <span class="badge bg-info">@course.Language</span>
                                 </div>
                             </div>
-                            <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center pb-3">
+
+                            <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
                                 <span class="fw-bold fs-5 text-primary">$@course.Price</span>
-                                <a class="btn btn-primary btn-sm" asp-action="CourseDetails" asp-route-id="@course.Id">
+                                <a class="btn btn-ui btn-ui-primary btn-sm"
+                                   asp-action="CourseDetails"
+                                   asp-route-id="@course.Id">
                                     <i class="fas fa-eye me-1"></i>View Details
                                 </a>
                             </div>
@@ -104,15 +113,17 @@
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
+<!-- CERTIFICATES -->
+<div class="card dashboard-card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Certificates</h5>
+            <h5 class="fw-bold">🏆 Certificates</h5>
             <a asp-action="MyCourses" class="btn btn-link">Go to courses</a>
         </div>
+
         @if (certificates.Count == 0)
         {
-            <p class="text-muted mb-0">No certificates yet. Complete a course to earn one.</p>
+            <p class="text-muted">No certificates yet. Complete a course to earn one.</p>
         }
         else
         {
@@ -122,9 +133,15 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <div class="fw-semibold">@c.Enrollment.Course.Title</div>
-                            <small class="text-muted">Issued @c.IssuedDate.ToShortDateString()</small>
+                            <small class="text-muted">
+                                Issued @c.IssuedDate.ToShortDateString()
+                            </small>
                         </div>
-                        <a class="btn btn-outline-primary btn-sm" asp-action="ViewCertificate" asp-route-enrollmentId="@c.EnrollmentId">View</a>
+                        <a class="btn btn-ui btn-ui-outline btn-sm"
+                           asp-action="ViewCertificate"
+                           asp-route-enrollmentId="@c.EnrollmentId">
+                            View
+                        </a>
                     </li>
                 }
             </ul>
@@ -132,6 +149,71 @@
     </div>
 </div>
 
+<!-- STYLES -->
+<style>
+    /* Dashboard Cards */
+    .dashboard-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    }
 
+    /* Stats */
+    .stat-card {
+        border-radius: 16px;
+        border: none;
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,.12);
+    }
 
+    .stat-blue {
+        background: linear-gradient(135deg,#2563eb,#3b82f6);
+    }
 
+    .stat-green {
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+    }
+
+    .stat-purple {
+        background: linear-gradient(135deg,#7c3aed,#a855f7);
+    }
+
+    /* Course Card */
+    .course-card {
+        border-radius: 16px;
+        border: none;
+        overflow: hidden;
+        transition: transform .3s ease, box-shadow .3s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+
+        .course-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 30px rgba(0,0,0,.15);
+        }
+
+    /* Buttons */
+    .btn-ui {
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-weight: 500;
+        transition: all .25s ease;
+    }
+
+    .btn-ui-primary {
+        background: linear-gradient(135deg,#2563eb,#3b82f6);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-ui-outline {
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        background: #fff;
+    }
+
+        .btn-ui-outline:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+</style>

@@ -9,31 +9,67 @@
         <div class="card-header bg-primary text-white">
             <h3 class="mb-0">Add New Module</h3>
         </div>
+
         <div class="card-body">
+
+            <!-- 🔴 Server-side validation errors -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
             <form asp-action="AddModule" method="post" class="needs-validation" novalidate>
+
+                <!-- REQUIRED for ValidateAntiForgeryToken -->
+                @Html.AntiForgeryToken()
+
+                <!-- CourseId -->
                 <input type="hidden" asp-for="CourseId" value="@ViewBag.CourseId" />
 
+                <!-- Title -->
                 <div class="mb-3">
-                    <label asp-for="Title" class="form-label fw-bold">Module Title</label>
-                    <input asp-for="Title" class="form-control form-control-lg" placeholder="Enter module title" required />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+                    <label asp-for="Title" class="form-label fw-bold"></label>
+                    <input asp-for="Title"
+                           class="form-control form-control-lg"
+                           placeholder="Enter module title"
+                           required />
+                    <div class="invalid-feedback">
+                        Module title is required.
+                    </div>
                 </div>
 
+                <!-- Description -->
                 <div class="mb-3">
-                    <label asp-for="Description" class="form-label fw-bold">Description</label>
-                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Write a short description..."></textarea>
+                    <label asp-for="Description" class="form-label fw-bold"></label>
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Write a short description..."></textarea>
                 </div>
 
+                <!-- OrderNo -->
                 <div class="mb-3">
-                    <label asp-for="OrderNo" class="form-label fw-bold">Order Number</label>
-                    <input asp-for="OrderNo" type="number" class="form-control" placeholder="Module order in course" />
+                    <label asp-for="OrderNo" class="form-label fw-bold"></label>
+                    <input asp-for="OrderNo"
+                           type="number"
+                           class="form-control"
+                           placeholder="Module order in course" />
                 </div>
 
+                <!-- Submit -->
                 <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-success btn-lg shadow-sm">
                         <i class="bi bi-plus-circle me-2"></i> Add Module
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -41,19 +77,21 @@
 
 @section Scripts {
     <script>
-        // Bootstrap form validation
+        // Bootstrap 5 validation
         (function () {
-            'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
+            'use strict';
+
+            var forms = document.querySelectorAll('.needs-validation');
+
             Array.prototype.slice.call(forms).forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
+                        event.preventDefault();
+                        event.stopPropagation();
                     }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
     </script>
 }

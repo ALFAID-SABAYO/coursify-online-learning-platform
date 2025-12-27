@@ -338,12 +338,14 @@ namespace Coursify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateCertificate(int enrollmentId)
         {
+            // 1️⃣ Auth check
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
+            // 2️⃣ Load enrollment securely
             var enrollment = await _context.Enrollments
                 .Include(e => e.Course)
                 .Include(e => e.Certificate)
@@ -354,26 +356,35 @@ namespace Coursify.Controllers
                 return NotFound();
             }
 
-            // Alfaid: generate certificate even if progress is 0
-            if (!enrollment.HasCertificate)
+            // 3️⃣ 🚨 ENFORCE 80% RULE (CRITICAL)
+            if (enrollment.ProgressPercentage < 80)
             {
-                enrollment.CompletedDate = DateTime.UtcNow;
-                enrollment.HasCertificate = true;
-
-                if (enrollment.Certificate == null)
-                {
-                    var certificate = new Certificate
-                    {
-                        EnrollmentId = enrollmentId,
-                        CertificateUrl = $"/certificates/{Guid.NewGuid()}.pdf",
-                        IssuedDate = DateTime.UtcNow
-                    };
-                    _context.Certificates.Add(certificate);
-                }
-
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "You must complete at least 80% of the course to generate a certificate.";
+                return RedirectToAction("MyCourses");
             }
 
+            // 4️⃣ Prevent duplicate certificates
+            if (enrollment.HasCertificate)
+            {
+                TempData["Info"] = "Certificate already generated.";
+                return RedirectToAction("MyCourses");
+            }
+
+            // 5️⃣ Generate certificate
+            enrollment.CompletedDate = DateTime.UtcNow;
+            enrollment.HasCertificate = true;
+
+            var certificate = new Certificate
+            {
+                EnrollmentId = enrollment.Id,
+                CertificateUrl = $"/certificates/{Guid.NewGuid()}.pdf",
+                IssuedDate = DateTime.UtcNow
+            };
+
+            _context.Certificates.Add(certificate);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "🎉 Certificate generated successfully!";
             return RedirectToAction("MyCourses");
         }
 
@@ -608,8 +619,8 @@ namespace Coursify.Controllers
             //        _context.Certificates.Add(certificate);
             //    }
             //}
-            //if (enrollment.ProgressPercentage >= 100 && !enrollment.HasCertificate)//alfaid commented it
-            if (!enrollment.HasCertificate)
+            if (enrollment.ProgressPercentage >= 80 && !enrollment.HasCertificate)//alfaid commented it
+            //if (!enrollment.HasCertificate)
             {
                 enrollment.CompletedDate = DateTime.UtcNow;
                 enrollment.HasCertificate = true;
