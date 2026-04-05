@@ -5,8 +5,8 @@ public class EmailService
 {
     public void SendEmail(string toEmail, string subject, string body)
     {
-        var fromEmail = "faid.sabayo@gmail.com";
-        var fromPassword = "cpas iayt rbcf jqne"; // <--- use app password here
+        var fromEmail = "******************";
+        var fromPassword = "***************"; // <--- use app password here
 
         var smtp = new SmtpClient("smtp.gmail.com")
         {
