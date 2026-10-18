@@ -1,28 +1,24 @@
-Coursify
+# Coursify
 
-Coursify is a course learning platform inspired by Udemy, built as an academic project in C#.  
-The platform supports **three user roles: Admin, Teacher, and Student**, each with dedicated features for managing courses and users.
+Coursify is a course learning platform inspired by Udemy, built as an academic project in C#. It supports three user roles (Admin, Teacher and Student), module-based course delivery, certificate generation, payment integration and automated purchase confirmation emails. It is a practical prototype of a real-world learning platform.
 
-It also includes module-based course delivery, certificate generation, payment gateway integration, and automated purchase confirmation emails, making it a practical, real-world learning platform prototype.
+## Features
 
-
-Features
-
-Admin
+### Admin
 - Manage users (teachers and students)
 - Approve or remove courses
 - Monitor platform activity
 - Manage categories and system data
-- Oversee teacher/student accounts
+- Oversee teacher and student accounts
 
-Teacher
+### Teacher
 - Create and manage courses
 - Upload lessons and course materials
 - Update course details
 - View enrolled students
 - Track student progress
 
-Student
+### Student
 - Browse available courses
 - Enroll in courses
 - Access course modules and lessons
@@ -31,18 +27,21 @@ Student
 - Receive purchase confirmation emails
 - View purchased content anytime
 
-Tech Stack
+## Tech Stack
 - Language: C#
 - Database: PostgreSQL (hosted on Neon)
-- ORM / DB Handling: Entity Framework Migrations
-- Core Concepts: OOP, Role-Based Access, CRUD Operations
-- Version Control: Git & GitHub
+- ORM: Entity Framework Migrations
+- Core concepts: OOP, Role-Based Access, CRUD Operations
+- Version control: Git and GitHub
 
-Future Improvements
-- Improve payment flow by replacing current hard-coded logic with dynamic production-ready integration
-- Add live video lecture support and streaming
-- Introduce quizzes, assignments, and progress-based assessments
-- Integrate AI-powered learning assistance for students
-- Enhance UI/UX for smoother course navigation
-- Add course reviews, ratings, and teacher feedback
-- Improve analytics dashboards for admin and teachers
+## Future Improvements
+- Replace the current hard-coded payment logic with a dynamic, production-ready integration
+- Add live video lectures and streaming
+- Add quizzes, assignments and progress-based assessments
+- Add AI-powered learning assistance for students
+- Improve the UI and UX for smoother course navigation
+- Add course reviews, ratings and teacher feedback
+- Improve analytics dashboards for admins and teachers
+
+## How to Run
+[Add the steps here, for example: open the solution in Visual Studio, update the database connection string, run the Entity Framework migrations, then start the project]
