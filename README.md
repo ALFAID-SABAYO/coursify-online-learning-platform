@@ -44,4 +44,4 @@ Coursify is a course learning platform inspired by Udemy, built as an academic p
 - Improve analytics dashboards for admins and teachers
 
 ## How to Run
-[Add the steps here, for example: open the solution in Visual Studio, update the database connection string, run the Entity Framework migrations, then start the project]
+  Add your database connection string and email settings (SMTP username and app password) in `appsettings.Development.json`. Never commit real credentials.
